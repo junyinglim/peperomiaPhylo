@@ -9,10 +9,13 @@
 * Evaluating coverage of chloroplast genomes
 
 ### Step 2: Extract out chloroplast genes using reference annotations
+* Multiple sequence alignment using MAFFT, and then annotations are exported in Geneious
+* Using these annotations, individual locus alignments are parsed out in python, with some filtering
+* Run a phylogeny using chloroplast genes and non-coding regions
 
-* Extract out chloroplast genes using annotations from reference
-* Run a phylogeny using chloroplast genes
-
+### Step 3: Phylogeny estimation
+* revbayes
+* RAxML
 
 ## Ideas:
 * Streamline code (a few unnecessary steps?)
@@ -31,7 +34,9 @@
 ** Reduces the number of ambiguities by half (from around 20,000 to 10,000 bases)
 ** Potentially more error? Observed many "local" specific disagreements with the end-to-end assemblies (and the reference), but perhaps that is to be expected as the end-to-end requires the entire read to match perfectly
 
-* Also probably important to remember that this is based on the reference and is thus biased in an unknown way
+* Also impt to remember that this is based on the reference and is thus biased in an unknown way
 
 ## To do:
 * Relax mapping algorithm to traverse non-coding regions (may contain a lot of phylogenetic signal)
+
+
