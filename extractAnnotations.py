@@ -12,7 +12,7 @@ import pandas as pd
 # Directories for local --------------------
 mafft="/usr/local/bin/mafft"
 blat="/Users/junyinglim/Desktop/blat/blat/blat"
-assembled_dir="/Users/junyinglim/Desktop/assembled" # path with consensus assemblies
+assembled_dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/data/assembled" # path with consensus assemblies
 
 # Import annotated genome --------------------
 annotatedGenome=SeqIO.read("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/referenceGenome/referenceGenome_KT223569.1.gb", "genbank")
@@ -88,21 +88,11 @@ blatOutputFile = os.path.join(assembled_dir, 'blatOutput.fsl')
 subprocess.Popen( [blat, alignedReferenceFile, proteinCodingGeneSeqFile, blatOutputFile, '-noHead', '-minIdentity=100'] )
 
 # Extract out from alignments
-alignPositions = pd.read_table(blatOutputFile,
-    names = ["matches", "misMatches", "repMatches", "nCount", "qNumInsert", "qBaseInsert",
-    "tNumInsert", "tBaseInsert", "strand", "qName", "qSize", "qStart", "qEnd",
-    "tName", "tSize", "tStart", "tEnd", "blockCount", "blockSizes", "qStarts", "tStarts"])
+# alignPositions = pd.read_table(blatOutputFile,
+#     names = ["matches", "misMatches", "repMatches", "nCount", "qNumInsert", "qBaseInsert",
+#     "tNumInsert", "tBaseInsert", "strand", "qName", "qSize", "qStart", "qEnd",
+#     "tName", "tSize", "tStart", "tEnd", "blockCount", "blockSizes", "qStarts", "tStarts"])
 
-alignPositions = alignPositions[alignPositions['strand'] == '+'] # only use those on one strand
+# alignPositions = alignPositions[alignPositions['strand'] == '+'] # only use those on one strand
 
-alignmentSeq = []
-for i in proteinCodingGenes_names:
-    i = 'petN'
-    temp = alignPositions[alignPositions['qName'] == 'petB']
-    if temp['blockCount'] >
-
-
-# Extract reference sequence (with gaps)
-# Map genes onto the alignment
-# Get the locations on reference sequence
-# Use Stefan's code (or write custom code) to extract those genes individually
+# Maybe I should not bother with CDS, and just deal with the full gene sequence
