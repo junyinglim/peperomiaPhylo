@@ -25,8 +25,8 @@ do
     # gunzip $DIR/${index}_*R1*.fastq.gz -k -d
     # gunzip $DIR/${index}_*R2*.fastq.gz -k -d
     
-    # printf "\nFiltering adapter sequences: $index"
-    # java -jar $trimmomatic/trimmomatic-0.36.jar PE -threads 4 -phred33 $DIR/${index}_*R1*.fastq $DIR/${index}_*R2*.fastq $DIR/${index}_trimmed_P1.fastq $DIR/${index}_trimmed_U1.fastq $DIR/${index}_trimmed_P2.fastq $DIR/${index}_trimmed_U2.fastq ILLUMINACLIP:$trimmomatic/adapters/TruSeq3-PE.fa:1:30:10 SLIDINGWINDOW:10:20 MINLEN:40
+    printf "\nFiltering adapter sequences: $index"
+    java -jar $trimmomatic/trimmomatic-0.36.jar PE -threads 4 -phred33 $DIR/${index}_*R1*.fastq $DIR/${index}_*R2*.fastq $DIR/${index}_trimmed_P1.fastq $DIR/${index}_trimmed_U1.fastq $DIR/${index}_trimmed_P2.fastq $DIR/${index}_trimmed_U2.fastq ILLUMINACLIP:$trimmomatic/adapters/TruSeq3-PE.fa:1:30:10 SLIDINGWINDOW:10:20 MINLEN:40
 
     printf "\nMap to chloroplast reference using bowtie2: $index"
     bowtie2 -1 $DIR/${index}_trimmed_P1.fastq -2 $DIR/${index}_trimmed_P2.fastq -x $indexedGenome -S $DIR/${index}_mapped.sam -I 200 -X 700 --very-sensitive-local --met-file $DIR/${index}_mapped.log --threads 4
@@ -45,13 +45,13 @@ do
 
     printf "\nGenerating consensus genotypes: $index"
     # 
-    bcftools call --ploidy 1 -c $DIR/${index}.mpilup > $DIR/${index}.vcf  #Assuming ploidy is 1 for chloroplast 
+    bcftools call --ploidy 1 -c $DIR/${index}.mpilup > $DIR/${index}.vcf  #Assuming ploidy is 1 for chloroplast
 
     printf "\nFiltering for read depth >= 10: $index" # not sure this code works
     vcftools --minDP 10 --vcf $DIR/${index}.vcf --out $DIR/filtered --recode --recode-INFO-all
 
     printf "Convert vcf file back into a fasta"
-    vcfutils.pl vcf2fq $DIR/filtered.recode.vcf > $DIR/${index}_assembled.fastq
+    vcfutils.pl vcf2fq $DIR/filtered.recode.vcf > $DIR/${index}_assembled.fastq # -d masking for heterozygosity and low coverage
     seqtk seq -A $DIR/${index}_assembled.fastq > $DIR/${index}_assembled.fasta
 
 
