@@ -40,5 +40,5 @@ for(i in geneNames){
 for(i in 1:length(extractedSeq)){
   write.dna(extractedSeq[[i]],
             file = file.path(output_dir, paste0(names(extractedSeq)[i], "_align.fasta")),
-            format = "fasta")
+            format = "fasta", colsep = "")
 }

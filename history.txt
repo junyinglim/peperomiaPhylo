@@ -1,0 +1,100 @@
+n_data_subsets
+for (i in 1:n_data_subsets) {
+    data[i] = readDiscreteCharacterData(fileNames[i])
+}
+n_data_subsets <- fileNames.size()
+for (i in 1:n_data_subsets) {
+    data[i] = readDiscreteCharacterData(fileNames[i])
+}
+### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR TETRAGNATHA
+# IMPORT DATA ==============
+# read in the character data
+fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
+n_data_subsets <- fileNames.size()
+for (i in 1:n_data_subsets) {
+    data[i] = readDiscreteCharacterData(fileNames[i])
+}
+### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR TETRAGNATHA
+# IMPORT DATA ==============
+# read in the character data
+fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
+n_data_subsets <- fileNames.size()
+for (i in 1:n_data_subsets) {
+    data[i] = readDiscreteCharacterData(fileNames[i])
+}
+### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR TETRAGNATHA
+# IMPORT DATA ==============
+# read in the character data
+fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
+n_data_subsets <- fileNames.size()
+for (i in 1:n_data_subsets) {
+    data[i] = readDiscreteCharacterData(fileNames[i])
+}
+n_species <- data[1].ntaxa()
+n_branches <- 2 * n_species - 3
+taxa <- data[1].taxa()
+mvi = 0
+mni = 0
+concatenate(data)
+concatenate
+?concatenate
+concatenate(data[1], data[2])
+data[1]
+data[2]
+data[3]
+concat = data[1]
+for(i in 2:n_data_subsets){
+    concat = concatenate(concat, data[i])    
+}
+# IMPORT DATA ==============
+fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
+n_data_subsets <- fileNames.size()
+for (i in 1:n_data_subsets) {
+    data[i] = readDiscreteCharacterData(fileNames[i])
+}
+n_species <- data[1].ntaxa()
+n_branches <- 2 * n_species - 3
+taxa <- data[1].taxa()
+mvi = 0
+mni = 0
+concat = data[1]
+for(i in 2:n_data_subsets){
+    print(i)
+    concat = concatenate(concat, data[i])    
+}
+er_prior <- v(1,1,1,1,1,1)
+er ~ dnDirichlet(er_prior)
+moves[++mvi] = mvSimplexElementScale(er, alpha=10, tune=true, weight=3) 
+# Stationary frequencies
+pi_prior <- v(1,1,1,1)
+pi ~ dnDirichlet(pi_prior)
+moves[++mvi] = mvSimplexElementScale(pi, alpha = 10, tune=true, weight=2)
+Q := ftrGTR(er, pi)
+Q := fnGTR(er, pi)
+Q
+# Gamma parameter
+alpha_prior_mean <- ln(2.0)
+alpha_prior_sd <- 0.587405
+alpha ~ dnLognormal(alpha_prior_mean, alpha_prior_sd)
+gamma_rates := fnDiscretizeGamma(alpha, alpha, 4, false)
+moves[++mvi] = mvScale(alpha, weight = 2)
+## DEFINE TREEMODEL ==============
+# Tree topology prior
+topology ~ dnUniformTopology(taxa) # not assuming an outgroup
+moves[++mvi] = mvNNI(topology, weight=5.0)
+moves[++mvi] = mvSPR(topology, weight=1.0)
+# Branch length prior
+for (i in 1:n_branches) {
+    bl[i] ~ dnExponential(10.0)
+    moves[++mvi] = mvScale(bl[i])
+}
+# Invariant sites
+pinvar ~ dnBeta(1,1)
+moves[++mvi] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
+moves[++mvi] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
+TL := sum(bl)
+psi := treeAssembly(topology, bl)
+## GENERATE MODEL ==============
+phyloSeq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=gamma_rates, pInv=pinvar, type="DNA")
+phyloSeq.clamp(concat)
+## ANAYSIS ==============mymodel = model(psi)# add monitorsmonitors[++mni] = mnModel(filename="output/PS_gene.log",printgen=10)monitors[++mni] = mnFile(psi, filename="output/PS_gene.trees", printgen=100)monitors[++mni] = mnScreen(TL, printgen=1000)# run the analysismymcmc = mcmc(mymodel, moves, monitors, nruns=2)mymcmc.burnin(10000,200)mymcmc.run(30000)# summarize outputtreetrace = readTreeTrace("output/PS_gene.trees", treetype="non-clock")map_tree = mapTree(treetrace,"output/PS_gene_map.tre")
