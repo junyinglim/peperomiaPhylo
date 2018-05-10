@@ -38,7 +38,7 @@ for(i in geneNames){
 
 # Rename the reference sequence name
 for(i in 1:length(extractedSeq)){
-  rownames(extractedSeq[[i]])[grep(rownames(extractedSeq[[i]]), pattern = "KT223569")] <- "Piper kadsura"  
+  rownames(extractedSeq[[i]])[grep(rownames(extractedSeq[[i]]), pattern = "KT223569")] <- "Piper_kadsura"  
 }
 
 # Export as phylip files
