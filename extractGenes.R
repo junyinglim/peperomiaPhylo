@@ -36,6 +36,11 @@ for(i in geneNames){
   extractedSeq[[i]] <- rawalignment[,starts_ends]
 }
 
+# Rename the reference sequence name
+for(i in 1:length(extractedSeq)){
+  rownames(extractedSeq[[i]])[grep(rownames(extractedSeq[[i]]), pattern = "KT223569")] <- "Piper kadsura"  
+}
+
 # Export as phylip files
 for(i in 1:length(extractedSeq)){
   write.dna(extractedSeq[[i]],

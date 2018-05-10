@@ -1,9 +1,3 @@
-n_data_subsets
-for (i in 1:n_data_subsets) {
-    data[i] = readDiscreteCharacterData(fileNames[i])
-}
-n_data_subsets <- fileNames.size()
-for (i in 1:n_data_subsets) {
     data[i] = readDiscreteCharacterData(fileNames[i])
 }
 ### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR TETRAGNATHA
@@ -98,3 +92,9 @@ psi := treeAssembly(topology, bl)
 phyloSeq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=gamma_rates, pInv=pinvar, type="DNA")
 phyloSeq.clamp(concat)
 ## ANAYSIS ==============mymodel = model(psi)# add monitorsmonitors[++mni] = mnModel(filename="output/PS_gene.log",printgen=10)monitors[++mni] = mnFile(psi, filename="output/PS_gene.trees", printgen=100)monitors[++mni] = mnScreen(TL, printgen=1000)# run the analysismymcmc = mcmc(mymodel, moves, monitors, nruns=2)mymcmc.burnin(10000,200)mymcmc.run(30000)# summarize outputtreetrace = readTreeTrace("output/PS_gene.trees", treetype="non-clock")map_tree = mapTree(treetrace,"output/PS_gene_map.tre")
+fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
+n_data_subsets <- fileNames.size()
+for (i in 1:n_data_subsets) {
+    data[i] = readDiscreteCharacterData(fileNames[i])
+}
+data[1]
