@@ -2,8 +2,8 @@
 
 
 # IMPORT DATA ==============
-#fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
-fileNames <- listFiles("/home/junyinglim/alignments")
+fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
+#fileNames <- listFiles("/home/junyinglim/alignments")
 n_data_subsets <- fileNames.size()
 for (i in 1:n_data_subsets) {
     data[i] = readDiscreteCharacterData(fileNames[i])
@@ -78,9 +78,9 @@ monitors[++mni] = mnFile(psi, filename="output/PS_gene.trees", printgen=100)
 monitors[++mni] = mnScreen(TL, printgen=1000)
 
 # run the analysis
-mymcmc = mcmc(mymodel, moves, monitors, nruns=2)
-mymcmc.burnin(10000,200)
-mymcmc.run(30000)
+mymcmc = mcmc(mymodel, moves, monitors, nruns=2) # perhaps try out a mcmcmc with multiple chains?
+mymcmc.burnin(30000, tuningInterval = 200)
+mymcmc.run(100000)
 
 # summarize output
 treetrace = readTreeTrace("output/PS_gene.trees", treetype="non-clock")
