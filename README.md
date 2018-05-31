@@ -2,20 +2,23 @@
 
 
 ## Pipeline
-### Step 1: Assembly to reference chloroplast genome
+### Step 1: Assembly to reference chloroplast genome (`assembly.sh`)
 * Adapter trimming using `Trimmomatic`
 * Index the reference genome using `bowtie2` (http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml#indexing-a-reference-genome)
 * Mapping to reference genome using `bowtie2`
 * Evaluating coverage of chloroplast genomes
 
 ### Step 2: Extract out chloroplast genes using reference annotations
-* Multiple sequence alignment using MAFFT, and then annotations are exported in Geneious
-* Using these annotations, individual locus alignments are parsed out in python, with some filtering
-* Run a phylogeny using chloroplast genes and non-coding regions
+* Multiple sequence alignment using MAFFT, and then BLAT reference sequences of protein-coding genes back to the alignment (`extractAnnotation.py`)
+* Using BLAT annotations, individual locus alignments are parsed out into separate alignment files (`extractGenes.R`)
 
 ### Step 3: Phylogeny estimation
-* revbayes
 * RAxML
+    * Concatenate and generate a partition file (`concatenateLoci.py`)
+
+* revbayes (`genPhylogeny.Rev`)
+	* Perhaps use secondary calibrations (or fossil calibrations)
+    
 
 ## Ideas:
 * Streamline code (a few unnecessary steps?)
