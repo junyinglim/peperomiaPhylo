@@ -9,7 +9,7 @@ genome="ribosome" # chloroplast or ribosome
 hostname=$(hostname)
 
 # Directories for the server (space between if and square bracket is necessary)
-if [ "$hostname" = "voldermort" ]; then
+if [ "$hostname" = "voldemort" ]; then
     DIR="/home/junyinglim/peperomiaFiles"
     trimmomatic="/home/junyinglim/Trimmomatic-0.36"
 
@@ -17,7 +17,7 @@ if [ "$hostname" = "voldermort" ]; then
         indexedGenome="/home/junyinglim/referenceGenome/piperchloroplast"
         referenceGenome="/home/junyinglim/referenceGenome/referenceGenome_KT223569.1.fasta"
     elif [ "$genome" = "ribosome" ]; then
-        referenceGenome="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/referenceGenome/JYL-31_rDNA.fasta"
+        referenceGenome="/home/junyinglim/referenceGenome/JYL-31_rDNA.fasta"
     fi    
     
 # Directories for local
@@ -34,6 +34,12 @@ elif [ "$hostname" = "Juns-MacBook-Pro.local" ]; then
 
 fi
 
+
+# Index reference genomes
+# if [ "$method" = "bwa" ]; then
+#     bwa index $referenceGenome
+# fi
+
 for s in $DIR/*_L008_R1*.fastq.gz
 do
     s=${s##*/}
@@ -46,12 +52,12 @@ do
     
     # printf "\nFiltering adapter sequences: $index"
     # java -jar $trimmomatic/trimmomatic-0.36.jar PE -threads 4 -phred33 $DIR/${index}_*R1*.fastq $DIR/${index}_*R2*.fastq $DIR/${index}_trimmed_P1.fastq $DIR/${index}_trimmed_U1.fastq $DIR/${index}_trimmed_P2.fastq $DIR/${index}_trimmed_U2.fastq ILLUMINACLIP:$trimmomatic/adapters/TruSeq3-PE.fa:1:30:10 SLIDINGWINDOW:10:20 MINLEN:40
+    
 
     # USING BWA ==================
-    if [ "$method" == "bwa" ]; then
-        printf "\nMap to chloroplast reference using BWA: $index\n"
-        bwa index $referenceGenome
-        bwa mem $referenceGenome $DIR/${index}_trimmed_P1.fastq $DIR/${index}_trimmed_P2.fastq > $DIR/${index}_bwa_${genome}_mapped.sam
+    if [ "$method" = "bwa" ]; then
+        printf "\nMap to reference sequence using BWA: $index\n"
+        bwa mem $referenceGenome $DIR/${index}_trimmed_P1.fastq $DIR/${index}_trimmed_P2.fastq > $DIR/${index}_bwa_${genome}_mapped.sam -t 4
 
         printf "\nSort reads by their aligned poisition to reference\n"
         samtools sort $DIR/${index}_bwa_${genome}_mapped.sam > $DIR/${index}_bwa_${genome}_sorted.sam
@@ -68,7 +74,7 @@ do
     fi
 
     # USING BOWTIE ==================
-    if [ "$method" == "bowtie" ]; then
+    if [ "$method" = "bowtie" ]; then
         printf "\nMap to chloroplast reference using bowtie2: $index"
         bowtie2 -1 $DIR/${index}_trimmed_P1.fastq -2 $DIR/${index}_trimmed_P2.fastq -x $indexedGenome -S $DIR/${index}_mapped.sam -I 200 -X 700 --very-sensitive-local --met-file $DIR/${index}_mapped.log --threads 4
 
@@ -99,10 +105,10 @@ do
 done
 
 # Clean up workspace
-printf "Cleaning up intermediate files ..."
-rm *_assembled.fastq
-rm *_mapped.sam
-rm *_sorted.bam
-rm *_sorted.sam
-rm *.vcf
-rm *.mpilup
+# printf "Cleaning up intermediate files ..."
+# rm *_assembled.fastq
+# rm *_mapped.sam
+# rm *_sorted.bam
+# rm *_sorted.sam
+# rm *.vcf
+# rm *.mpilup
