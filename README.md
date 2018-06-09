@@ -10,7 +10,6 @@
 
 ### Step 1B: Guided de novo assembly of chloroplast genomes (`denovoAssembly.sh`)
 * Use GetOrganelle's (https://github.com/Kinggerm/GetOrganelle) reference mapping (`bowtie2`) coupled with read extension algorithms to filter out organelle reads
-* 
 
 
 NOTES:
