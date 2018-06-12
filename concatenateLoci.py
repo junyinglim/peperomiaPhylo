@@ -8,7 +8,7 @@ import os
 from seqTools import genPartition, concatenate # custom functions
 
 # Directories for local --------------------
-alignments_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments"
+alignments_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/bwa_alignments"
 concat_dir = "/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data"
 
 # Import locus alignments --------------------
@@ -22,4 +22,3 @@ AlignIO.write(concatenatedAlignment, os.path.join(concat_dir, "concatAlign_31081
 
 # Generate partition parameters -------------------- 
 genPartition(alignments, filename = os.path.join(concat_dir, "pepPhylo_partition.txt"))
-

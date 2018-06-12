@@ -3,8 +3,8 @@
 # Packages
 library(ape)
 data_dir <- "/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data"
-assembled_dir <- file.path(data_dir, "assembled")
-output_dir <- file.path(data_dir, "alignments")
+assembled_dir <- file.path(data_dir, "chloroplast_bwa_assembled")
+output_dir <- file.path(data_dir, "bwa_alignments")
 
 # Extract out from alignments
 alignPositions <- read.table(file.path(assembled_dir, "blatOutput.fsl"),

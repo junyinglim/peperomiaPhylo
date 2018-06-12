@@ -11,8 +11,8 @@ import pandas as pd
 
 # Directories for local --------------------
 mafft="/usr/local/bin/mafft"
-blat="/Users/junyinglim/Desktop/blat/blat/blat"
-assembled_dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/data/assembled" # path with consensus assemblies
+blat="/Users/junyinglim/Dropbox/Projects/Programs/blat/blat/blat"
+assembled_dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/chloroplast_bwa_assembled" # path with consensus assemblies
 
 # Import annotated genome --------------------
 annotatedGenome=SeqIO.read("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/referenceGenome/referenceGenome_KT223569.1.gb", "genbank")
@@ -47,10 +47,6 @@ for k in range(len(proteinCodingGenesSeq)):
     proteinCodingGenesSeq[k].description = proteinCodingGenes_names[k]
 
 
-# proteinCodingGenes = [cds for cds in proteinCodingGenes if cds.qualifiers["gene"][0] != "rps12"] #remove rps12 for now since it appears twice, one on the sense, and the other on the anti-sense
-# proteinCodingGenes = [cds for cds in proteinCodingGenes if cds.qualifiers["gene"][0] != "rps7"] # on the same strand but separated....
-# proteinCodingGenes = [cds for cds in proteinCodingGenes if cds.qualifiers["gene"][0] != "ndhB"] # on the same strand but separated....
-
 # Extract protein coding genes into a single fasta file
 proteinCodingGenesSeqFile = os.path.join(assembled_dir, "proteinCodingGenes.fasta")
 
@@ -73,11 +69,14 @@ SeqIO.write(assembliesSeq, seqFile, "fasta")
 # Align platomes using MAFFT --------------------
 alignmentFile = os.path.join(assembled_dir, 'pep_seq_aligned.fasta')
 res = subprocess.check_output( [mafft, '--auto', seqFile])
-with file(alignmentFile, 'w') as f:
-    f.write(res)
+
+f = open(alignmentFile, 'wb+')
+f.write(res)
+f.close
+
 
 # Extract reference sequence from alignment
-pep_alignment = AlignIO.read(outfile, "fasta")
+pep_alignment = AlignIO.read(alignmentFile, "fasta")
 alignedReference =[seq for seq in pep_alignment if seq.id == "KT223569.1"][0]
 
 alignedReferenceFile = os.path.join(assembled_dir, "alignedReference.fasta")
@@ -85,7 +84,7 @@ SeqIO.write(alignedReference, alignedReferenceFile, "fasta")
 
 # BLAT back to reference sequence --------------------
 blatOutputFile = os.path.join(assembled_dir, 'blatOutput.fsl')
-subprocess.Popen( [blat, alignedReferenceFile, proteinCodingGeneSeqFile, blatOutputFile, '-noHead', '-minIdentity=100'] )
+subprocess.Popen( [blat, alignedReferenceFile, proteinCodingGenesSeqFile, blatOutputFile, '-noHead', '-minIdentity=100'] )
 
 # Extract out from alignments
 # alignPositions = pd.read_table(blatOutputFile,

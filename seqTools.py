@@ -94,10 +94,14 @@ def genPartition(alignments, filename):
     starts.extend(starts2.tolist())
     ends=ends.tolist() # convert back to list
 
-    with open(filename, 'wb') as file:
-        for i in range(len(starts)):
-            num = i+1
-            # if i == len(starts):
-            #   file.write('DNA, gene' + str(num) + " = " + str(starts[i]) + '-' + str(ends[i]))
-            # else:
-            file.write('DNA, gene' + str(num) + " = " + str(starts[i]) + '-' + str(ends[i]) + '\n')
+    f = open(filename, 'w+')
+    #with open(filename, 'wb') as file:
+    for i in range(len(starts)):
+        num = i+1
+        # if i == len(starts):
+        #   file.write('DNA, gene' + str(num) + " = " + str(starts[i]) + '-' + str(ends[i]))
+        # else:
+        #file.write('DNA, gene' + str(num) + " = " + str(starts[i]) + '-' + str(ends[i]) + '\n')
+
+        f.write('DNA, gene' + str(num) + " = " + str(starts[i]) + '-' + str(ends[i]) + '\n')
+    f.close
