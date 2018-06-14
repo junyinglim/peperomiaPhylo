@@ -1,0 +1,127 @@
+### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR PEPEROMIA\
+
+# IMPORT DATA ==============
+stem = "bayes_nonclock"
+data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/concatAlign_310818.phy")
+
+n_species <- data.ntaxa()
+n_branches <- 2 * n_species - 3
+taxa <- data.taxa()
+
+mvi = 0
+mni = 0
+
+## DEFINE SUBSTITUTION MODEL ==============
+# Exchangeability rates
+er_prior <- v(1,1,1,1,1,1)
+er ~ dnDirichlet(er_prior)
+moves[++mvi] = mvSimplexElementScale(er, alpha=10, tune=true, weight=3) 
+
+# Stationary frequencies
+pi_prior <- v(1,1,1,1)
+pi ~ dnDirichlet(pi_prior)
+moves[++mvi] = mvSimplexElementScale(pi, alpha = 10, tune=true, weight=2)
+
+Q := fnGTR(er, pi)
+
+# Gamma parameter
+alpha_prior_mean <- ln(2.0)
+alpha_prior_sd <- 0.587405
+alpha ~ dnLognormal(alpha_prior_mean, alpha_prior_sd)
+gamma_rates := fnDiscretizeGamma(alpha, alpha, 4, false)
+
+moves[++mvi] = mvScale(alpha, tune = true, weight = 2)
+
+## DEFINE FOSSILIZED BIRTH DEATH ==============
+# Tree topology prior
+topology ~ dnUniformTopology(taxa) # not assuming an outgroup
+moves[++mvi] = mvNNI(topology, weight=5.0)
+moves[++mvi] = mvSPR(topology, weight=5.0)
+
+# Branch length prior
+for (i in 1:n_branches) {
+    bl[i] ~ dnExponential(10.0)
+    moves[++mvi] = mvScale(bl[i])
+}
+
+# Invariant sites
+# pinvar ~ dnBeta(1,1)
+# moves[++mvi] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
+# moves[++mvi] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
+
+
+# Clock model
+num_rate_categories = 10
+ucln_mean ~ dnUniform(1E-6, 10)
+ucln_log_mean := ln( ucln_mean[i] )
+ucln_sigma ~ dnExponential(10.0)
+rate_categories := fnDiscretizeDistribution( dnLognormal( ucln_log_mean[i], ucln_sigma[i] ), num_rate_categories)
+rate_probs <- simplex(rep(1, num_rate_categories))
+
+moves[++mvi] = mvScale(ucln_mean[i], lambda = 1, weight = 5.0, tune = true) #
+moves[++mvi] = mvScale(ucln_sigma[i], lambda = 1, weight = 5.0, tune = true) #
+
+for(j in 1:n_branches){
+	branch_rates[i][j] ~ dnMixture( rate_categories, rate_probs )
+	moves[++mvi] = mvMixtureAllocation( branch_rates[j], weight = 3.0 )
+}
+
+# Origin time
+# hyperprior on fossil stratigraphic range
+fossilRange ~ dnUniform(lower = 66, upper = 68)
+fossilSigma ~ dnExponential(10.0)
+originTime ~ dnLognormal(mean = fossilRange, sd = fossilSigma)
+
+# Speciation and extinction rate for birth death process
+diversification ~ dnLognormal( mean = ln(n_species) / originTime , sd = 0.587405)
+turnover ~ dnUniform(1E-6, 0.999999)
+lambda := diversification / abs(1.0 - turnover)
+mu := turnover * lambda
+moves[++mvi] = mvScale(diversification, tune = true, weight = 10.0, lambda = 1.0)
+moves[++mvi] = mvScale(turnover, tune = true, weight = 10.0, lambda = 1.0)
+
+tau ~ dnBirthDeath(lambda = lambda,
+				   mu = mu,
+				   rootAge = originTime,
+				   rho = 0.5, 
+				   samplingStrategy = "uniform",
+				   condition = "time",
+				   taxa = data.names())
+
+moves[++mvi] = mvNarrow(tau, weight=5.0)
+moves[++mvi] = mvNNI(tau, weight=1.0)
+moves[++mvi] = mvFNPR(tau, weight=5.0)
+moves[++mvi] = mvSubtreeScale(tau, weight=3.0)
+moves[++mvi] = mvNodeTimeSlideUniform(tau, weight=15.0)
+
+
+# Just some useful monitors
+TL := sum(bl)
+psi := treeAssembly(topology, bl)
+
+## GENERATE MODEL ==============
+phyloSeq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=gamma_rates, type="DNA") #pInv=pinvar
+#phyloSeq.clamp(concat)
+phyloSeq.clamp(data)
+
+
+## ANAYSIS ==============
+mymodel = model(psi)
+
+# add monitors
+monitors[++mni] = mnModel(filename=stem+".log",printgen=10)
+monitors[++mni] = mnFile(psi, filename=stem+".trees", printgen=100)
+monitors[++mni] = mnScreen(TL, printgen=1000)
+
+# run the analysis
+mymcmc = mcmc(mymodel, moves, monitors)#), nchains = 4) # perhaps try out a mcmcmc with multiple chains?
+mymcmc.burnin(30000) #, tuningInterval = 200)
+mymcmc.run(100000)
+
+# summarize output
+treetrace = readTreeTrace(stem+"_gene.trees", treetype="non-clock")
+map_tree = mapTree(treetrace,stem+"_gene_map.tre")
+
+
+# you may want to quit RevBayes now
+q()

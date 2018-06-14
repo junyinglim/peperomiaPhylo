@@ -104,4 +104,5 @@ def genPartition(alignments, filename):
         #file.write('DNA, gene' + str(num) + " = " + str(starts[i]) + '-' + str(ends[i]) + '\n')
 
         f.write('DNA, gene' + str(num) + " = " + str(starts[i]) + '-' + str(ends[i]) + '\n')
+    
     f.close

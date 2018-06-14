@@ -62,15 +62,17 @@ do
         printf "\nSort reads by their aligned poisition to reference\n"
         samtools sort $DIR/${index}_bwa_${genome}_mapped.sam > $DIR/${index}_bwa_${genome}_sorted.sam
 
-        printf "\nConvert to pile up format\n"
-        samtools mpileup -Q 33 -Agf $referenceGenome $DIR/${index}_bwa_${genome}_sorted.sam > $DIR/${index}_bwa_${genome}.mpilup
+        printf "\nDetermine read depth of $index\n"
+        samtools depth $DIR/${index}_bwa_${genome}_sorted.sam > $DIR/${index}_readdepth.tsv
+        # printf "\nConvert to pile up format\n"
+        # samtools mpileup -Q 33 -Agf $referenceGenome $DIR/${index}_bwa_${genome}_sorted.sam > $DIR/${index}_bwa_${genome}.mpilup
 
-        printf "\nGenerate consensus genotype: $index\n"
-        bcftools call -c $DIR/${index}_bwa_${genome}.mpilup > $DIR/${index}_bwa_${genome}.vcf
+        # printf "\nGenerate consensus genotype: $index\n"
+        # bcftools call -c $DIR/${index}_bwa_${genome}.mpilup > $DIR/${index}_bwa_${genome}.vcf
 
-        printf "\nConvert vcf file back to a fasta\n"
-        vcfutils.pl vcf2fq $DIR/${index}_bwa_${genome}.vcf > $DIR/${index}_bwa_${genome}_assembled.fastq
-        seqtk seq -A $DIR/${index}_bwa_${genome}_assembled.fastq > $DIR/${index}_bwa_${genome}_assembled.fasta
+        # printf "\nConvert vcf file back to a fasta\n"
+        # vcfutils.pl vcf2fq $DIR/${index}_bwa_${genome}.vcf > $DIR/${index}_bwa_${genome}_assembled.fastq
+        # seqtk seq -A $DIR/${index}_bwa_${genome}_assembled.fastq > $DIR/${index}_bwa_${genome}_assembled.fasta
     fi
 
     # USING BOWTIE ==================
