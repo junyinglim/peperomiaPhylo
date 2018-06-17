@@ -1,13 +1,3 @@
-data[1]
-data[2]
-data[3]
-concat = data[1]
-for(i in 2:n_data_subsets){
-    concat = concatenate(concat, data[i])    
-}
-# IMPORT DATA ==============
-fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
-n_data_subsets <- fileNames.size()
 for (i in 1:n_data_subsets) {
     data[i] = readDiscreteCharacterData(fileNames[i])
 }
@@ -98,3 +88,13 @@ mymodel = model(psi)
 monitors
 mymcmc = mcmc(mymodel, moves, monitors)
 mymcmc.run(100000)
+
+daya
+data
+data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/pep_160618/concatAlign_160618_clean.phy")
+
+readDiscreteCharacterData
+data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/pep_160618/concatAlign_160618.phy")
+data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/pep_160618/concatAlign_160618_clean.fasta")
+data
+mymcmc.burnin(7500, tuningInterval = 250) #, tuningInterval = 200
