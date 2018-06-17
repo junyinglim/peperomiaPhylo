@@ -1,33 +1,15 @@
-### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR PEPEROMIA\
+### PEPEROMIA DIVERGENCE TIME ANALYSIS
 
 # IMPORT DATA ==============
-#fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
-#fileNames <- listFiles("/home/junyinglim/alignments")
-# n_data_subsets <- fileNames.size()
-# for (i in 1:n_data_subsets) {
-#     data[i] = readDiscreteCharacterData(fileNames[i])
-# }
+stem = "bayes_clock"
+data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/concatAlign_clock_160618.phy")
 
-stem = "bayes_nonclock"
-data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/concatAlign_310818.phy")
-
-
-
-#n_species <- data[1].ntaxa()
 n_species <- data.ntaxa()
-n_branches <- 2 * n_species - 3
+n_branches <- 2 * n_species - 2 # 2N - 3 (only true for unrooted), 2N-2 for rooted
 taxa <- data.taxa()
 
 mvi = 0
 mni = 0
-
-## CONCATENATE ALIGNMENTS ==============
-# This takes a while
-# concat = data[1]
-# for(i in 2:n_data_subsets){
-#     print(i)
-#     concat = concatenate(concat, data[i])    
-# }
 
 ## DEFINE SUBSTITUTION MODEL ==============
 # Exchangeability rates
@@ -47,52 +29,99 @@ alpha_prior_mean <- ln(2.0)
 alpha_prior_sd <- 0.587405
 alpha ~ dnLognormal(alpha_prior_mean, alpha_prior_sd)
 gamma_rates := fnDiscretizeGamma(alpha, alpha, 4, false)
-
 moves[++mvi] = mvScale(alpha, tune = true, weight = 2)
 
-## DEFINE TREEMODEL ==============
-# Tree topology prior
-topology ~ dnUniformTopology(taxa) # not assuming an outgroup
-moves[++mvi] = mvNNI(topology, weight=5.0)
-moves[++mvi] = mvSPR(topology, weight=5.0)
+# # Invariant sites
+# pinvar ~ dnBeta(1,1)
+# moves[++mvi] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
+# moves[++mvi] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
 
+
+## CLOCK MODEL ==============
 # Branch length prior
-for (i in 1:n_branches) {
-    bl[i] ~ dnExponential(10.0)
-    moves[++mvi] = mvScale(bl[i])
+num_rate_categories = 10
+ucln_mean ~ dnUniform(1E-5, 1)
+ucln_sd ~ dnExponential(1.0)
+rate_categories := fnDiscretizeDistribution( dnLognormal(ucln_mean, ucln_sd), num_rate_categories)
+rate_probs <- simplex(rep(1, num_rate_categories))
+moves[++mvi] = mvScale(ucln_mean, lambda = 1, weight = 5, tune = true)
+moves[++mvi] = mvScale(ucln_sd, lambda = 1, weight = 5, tune = true)
+
+for(j in 1:n_branches){
+	branch_rates[j] ~ dnMixture(rate_categories, rate_probs)
+	moves[++mvi] = mvMixtureAllocation( branch_rates[j], weight = 3.0)
 }
+# Every branch has equal probability to be in any of the 10 rate categories, but because it is discretized, most of the rate categories will be close to the mean
 
-# Invariant sites
-pinvar ~ dnBeta(1,1)
-moves[++mvi] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
-moves[++mvi] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
+## ORIGIN TIMES ==============
+fossilTime ~ dnUniform(66.0, 68.0)
+fossilTime.setValue(67.0)
+originTime_sd ~ dnUniform(1E-5, 1)
+originTime_sd.setValue(0.5)
 
-TL := sum(bl)
-psi := treeAssembly(topology, bl)
+originTime ~ dnLognormal(mean = ln(fossilTime), sd = originTime_sd)
+originTime.setValue(67.0)
+moves[++mvi] = mvScale( fossilTime, tune = true, weight = 1, lambda = 1.0)
+moves[++mvi] = mvScale( originTime, tune = true, weight = 3, lambda = 1.0)
+
+## DEFINE TREEMODEL ==============
+# Diversification
+# diversification ~ dnLognormal(mean = ln(n_species) / originTime, sd = 0.587405)
+# turnover ~ dnUniform(1E-6, 0.99999)
+# lambda := diversification / abs(1.0 - turnover)
+# mu := turnover * lambda
+
+# Following Condamine et al (2015) BMC Evol Biol
+lambda ~ dnUniform(1E-6, 10.0)
+lambda.setValue(0.1)
+
+turnover ~ dnUniform(1E-6, 1.0) # relative to birth rate
+turnover.setValue(0.5)
+mu := turnover * lambda
+
+# Birth-death tree 
+tau ~ dnBirthDeath( lambda = lambda,
+					mu = mu,
+					rho = 1.0,
+					rootAge = abs(originTime),
+					samplingStrategy="uniform",
+					condition = "time",
+					taxa = data.names()
+				  )
+
+
+# Define tree moves
+moves[++mvi] = mvNarrow(tau, weight=5.0)
+moves[++mvi] = mvNNI(tau, weight=1.0)
+moves[++mvi] = mvFNPR(tau, weight=5.0)
+moves[++mvi] = mvSubtreeScale(tau, weight=3.0)
+moves[++mvi] = mvNodeTimeSlideUniform(tau, weight=15.0)
+
 
 ## GENERATE MODEL ==============
-phyloSeq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=gamma_rates, pInv=pinvar, type="DNA")
+print("Initialize model ...")
+phyloSeq ~ dnPhyloCTMC(tree=tau,
+					   Q=Q,
+					   siteRates = gamma_rates,
+					   branchRates = branch_rates,
+					   type="DNA"
+					   )
 #phyloSeq.clamp(concat)
 phyloSeq.clamp(data)
-
-## ANAYSIS ==============
-print("Initialize model ...")
-mymodel = model(psi)
+mymodel = model(phyloSeq)
 
 # add monitors
-monitors[++mni] = mnModel(filename=stem+".log",printgen=10)
-monitors[++mni] = mnFile(psi, filename=stem+".trees", printgen=100)
-monitors[++mni] = mnScreen(TL, printgen=1000)
+monitors[++mni] = mnModel(filename=stem+".log",printgen=100)
+monitors[++mni] = mnFile(tau, filename=stem+".trees", printgen=100)
+monitors[++mni] = mnScreen(originTime, printgen=100)
 
 # run the analysis
 mymcmc = mcmc(mymodel, moves, monitors)#), nchains = 4) # perhaps try out a mcmcmc with multiple chains?
-mymcmc.burnin(30000, tuningInterval = 200)
-mymcmc.run(100000)
+#mymcmc.burnin(10000, tuningInterval = 200)
+mymcmc.run(10000)
 
 # summarize output
 treetrace = readTreeTrace(stem+"_gene.trees", treetype="non-clock")
-map_tree = mapTree(treetrace,stem+"_gene_map.tre")
+map_tree = mapTree(treetrace, stem+"_gene_map.tre")
 
-
-# you may want to quit RevBayes now
-q()
+# q()
