@@ -1,7 +1,7 @@
 ### PEPEROMIA DIVERGENCE TIME ANALYSIS
 
 # IMPORT DATA ==============
-stem = "bayes_clock"
+stem = "bayes_clock_rho_complete"
 data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/concatAlign_clock_160618.phy")
 
 n_species <- data.ntaxa()
@@ -31,38 +31,36 @@ alpha ~ dnLognormal(alpha_prior_mean, alpha_prior_sd)
 gamma_rates := fnDiscretizeGamma(alpha, alpha, 4, false)
 moves[++mvi] = mvScale(alpha, tune = true, weight = 2)
 
-# # Invariant sites
-# pinvar ~ dnBeta(1,1)
-# moves[++mvi] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
-# moves[++mvi] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
-
-
 ## CLOCK MODEL ==============
 # Branch length prior
 num_rate_categories = 10
 ucln_mean ~ dnUniform(1E-5, 1)
-ucln_sd ~ dnExponential(1.0)
+ucln_sd ~ dnExponential(1/3) # following Condamine
 rate_categories := fnDiscretizeDistribution( dnLognormal(ucln_mean, ucln_sd), num_rate_categories)
 rate_probs <- simplex(rep(1, num_rate_categories))
-moves[++mvi] = mvScale(ucln_mean, lambda = 1, weight = 5, tune = true)
-moves[++mvi] = mvScale(ucln_sd, lambda = 1, weight = 5, tune = true)
+moves[++mvi] = mvScale(ucln_mean, weight = 5, tune = true)
+moves[++mvi] = mvScale(ucln_sd, weight = 5, tune = true, lambda = 3.0)
 
 for(j in 1:n_branches){
 	branch_rates[j] ~ dnMixture(rate_categories, rate_probs)
-	moves[++mvi] = mvMixtureAllocation( branch_rates[j], weight = 3.0)
+	moves[++mvi] = mvMixtureAllocation( branch_rates[j], weight = 10.0)
 }
 # Every branch has equal probability to be in any of the 10 rate categories, but because it is discretized, most of the rate categories will be close to the mean
 
 ## ORIGIN TIMES ==============
-fossilTime ~ dnUniform(66.0, 68.0)
+fossilTime ~ dnUniform(66.0, 68.0) # hyper prior on fossil stratigraphic range
 fossilTime.setValue(67.0)
-originTime_sd ~ dnUniform(1E-5, 1)
+
+# originTime_sd ~ dnExponential(0.5)
+# originTime_sd ~ dnUniform(1E-5, 1)
+originTime_sd ~ dnExponential(0.5)
 originTime_sd.setValue(0.5)
 
-originTime ~ dnLognormal(mean = ln(fossilTime), sd = originTime_sd)
+originTime ~ dnLognormal(mean = ln(fossilTime), sd = originTime_sd) # lognormal favors somewhat older dates
 originTime.setValue(67.0)
-moves[++mvi] = mvScale( fossilTime, tune = true, weight = 1, lambda = 1.0)
-moves[++mvi] = mvScale( originTime, tune = true, weight = 3, lambda = 1.0)
+moves[++mvi] = mvScale( fossilTime, tune = true, weight = 1)
+moves[++mvi] = mvScale( originTime_sd, tune = true, weight = 2)
+moves[++mvi] = mvScale( originTime, tune = true, weight = 3)
 
 ## DEFINE TREEMODEL ==============
 # Diversification
@@ -79,16 +77,20 @@ turnover ~ dnUniform(1E-6, 1.0) # relative to birth rate
 turnover.setValue(0.5)
 mu := turnover * lambda
 
+moves[++mvi] = mvScale(lambda, weight = 3.0, tune = true)
+moves[++mvi] = mvScale(turnover, weight = 3.0, tune = true)
+
 # Birth-death tree 
 tau ~ dnBirthDeath( lambda = lambda,
 					mu = mu,
 					rho = 1.0,
-					rootAge = abs(originTime),
-					samplingStrategy="uniform",
+					rootAge = abs(fossilTime),
+					samplingStrategy="diversified",
 					condition = "time",
 					taxa = data.names()
 				  )
-
+# According to Kew, 1339 accepted Peperomia and 2092 accepted Piper species
+# 
 
 # Define tree moves
 moves[++mvi] = mvNarrow(tau, weight=5.0)
@@ -106,22 +108,22 @@ phyloSeq ~ dnPhyloCTMC(tree=tau,
 					   branchRates = branch_rates,
 					   type="DNA"
 					   )
-#phyloSeq.clamp(concat)
 phyloSeq.clamp(data)
 mymodel = model(phyloSeq)
 
 # add monitors
-monitors[++mni] = mnModel(filename=stem+".log",printgen=100)
-monitors[++mni] = mnFile(tau, filename=stem+".trees", printgen=100)
-monitors[++mni] = mnScreen(originTime, printgen=100)
+monitors[++mni] = mnModel(filename=stem+".log",printgen=10)
+monitors[++mni] = mnFile(tau, filename=stem+".trees", printgen=10)
+monitors[++mni] = mnScreen(originTime, printgen=10)
 
 # run the analysis
-mymcmc = mcmc(mymodel, moves, monitors)#), nchains = 4) # perhaps try out a mcmcmc with multiple chains?
-#mymcmc.burnin(10000, tuningInterval = 200)
-mymcmc.run(10000)
+mymcmc = mcmc(mymodel, moves, monitors)
+#), nchains = 4) # perhaps try out a mcmcmc with multiple chains?
+mymcmc.burnin(10000, tuningInterval = 200)
+mymcmc.run(50000)
 
 # summarize output
-treetrace = readTreeTrace(stem+"_gene.trees", treetype="non-clock")
-map_tree = mapTree(treetrace, stem+"_gene_map.tre")
+# treetrace = readTreeTrace(stem+"_gene.trees", treetype="clock")
+# map_tree = mapTree(treetrace, stem+"_gene_map.tre")
 
 # q()
