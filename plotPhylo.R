@@ -9,6 +9,7 @@ library(grid)
 ## DIRECTORIES ============
 phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/raxml_160618/"
 data.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/data"
+main.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/"
 
 # Import accessionData
 accessionData <- read.csv(file.path(data.dir, "PeperomiaAccessionData.csv"), stringsAsFactors = FALSE)
@@ -239,6 +240,17 @@ testPhylo_node <- ggtree(pepRAXML_rooted) + geom_tiplab(size = 1.2) + geom_text(
 
 ggsave(testPhylo_node, width = 20, height = 20, filename = "~/Desktop/pepNode.pdf")
 
+## COUNT
 
+readDepth <- read.csv(file.path(main.dir, "readDepthSummary.csv"))
+accessionData <- merge(readDepth, accessionData, by.x = "sample_ID", by.y = "SampleID" )
+names(accessionData)
+temp <- subset(accessionData, tiplabel %in% pepRAXML_rooted$tip.label)
+
+quantile(temp$meanCoverage)
+sd(temp$meanCoverage)
+range(temp$meanCoverage)
+
+mean(temp$signif.propAmbiguous..3.)
 ## FIT BIOGEOBEARS ==============
 pepRAXML
