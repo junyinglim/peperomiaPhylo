@@ -86,6 +86,12 @@ SeqIO.write(alignedReference, alignedReferenceFile, "fasta")
 blatOutputFile = os.path.join(assembled_dir, 'blatOutput.fsl')
 subprocess.Popen( [blat, alignedReferenceFile, proteinCodingGenesSeqFile, blatOutputFile, '-noHead', '-minIdentity=100'] )
 
+# BLAT Non-protein coding sequences
+noncodingfile = os.path.join(assembled_dir, "noncoding.fasta")
+blatNonCodingOutputFile = os.path.join(assembled_dir, 'blatNonCodingOutput.fsl')
+subprocess.Popen( [blat, alignedReferenceFile, noncodingfile, blatNonCodingOutputFile, '-noHead', '-minIdentity=100'] )
+
+
 # Extract out from alignments
 # alignPositions = pd.read_table(blatOutputFile,
 #     names = ["matches", "misMatches", "repMatches", "nCount", "qNumInsert", "qBaseInsert",

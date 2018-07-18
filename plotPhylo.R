@@ -252,5 +252,8 @@ sd(temp$meanCoverage)
 range(temp$meanCoverage)
 
 mean(temp$signif.propAmbiguous..3.)
+table(temp$HigherGeography)
+nrow(subset(temp, HigherGeography %in% c("Asia", "Africa", "S + C America")))
+
 ## FIT BIOGEOBEARS ==============
 pepRAXML
