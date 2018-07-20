@@ -54,3 +54,5 @@ done
 #"/Users/junyinglim/Dropbox/Projects/Programs/Trimmomatic-0.36"
 #"/Users/junyinglim/Dropbox/Projects/Programs/SPAdes-3.12.0-Darwin/"
 #"/Users/junyinglim/Dropbox/Projects/Programs/sspace_basic"
+
+# Had to go into the afin folder and make

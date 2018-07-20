@@ -8,6 +8,9 @@ from Bio.Align import MultipleSeqAlignment
 import os
 from seqTools import genPartition, concatenate # custom functions
 
+from Bio.AlignIO import PhylipIO
+#Bio.AlignIO.PhylipIO._PHYLIP_ID_WIDTH=30
+
 # Directories for local --------------------
 coding_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/bwa_alignments/coding"
 noncoding_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/bwa_alignments/noncoding"
@@ -44,7 +47,7 @@ concatenatedAlignment_both = concatenate(bothAlignments)
 # 		"PEZ-237_bwa", "PEZ-238_bwa", "PEZ-239_bwa", "PEZ-241_bwa", "PEZ-242_bwa", "PEZ-243_bwa",
 # 		"PEZ-244_bwa", "PEZ-245_bwa"]
 
-excludedSpecimens = ["PEZ-231_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-237_bwa", "PEZ-244_bwa", "PEZ-245_bwa",]
+excludedSpecimens = ["PEZ-231_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-237_bwa", "PEZ-244_bwa", "PEZ-245_bwa"]
 # 231,233,234,244, 245 = no more living collection
 # 235 = voucher but no locality
 # 237 = no locality
@@ -58,7 +61,6 @@ concatenatedAlignment_coding_subset = MultipleSeqAlignment(concatenatedAlignment
 concatenatedAlignment_noncoding_subset = MultipleSeqAlignment(concatenatedAlignment_noncoding_subset)
 
 concatenatedAlignment_both_subset = MultipleSeqAlignment(concatenatedAlignment_both_subset)
-
 
 AlignIO.write(concatenatedAlignment_coding_subset, os.path.join(concat_dir, "codingConcat_180718.phy"), "phylip-relaxed")
 AlignIO.write(concatenatedAlignment_noncoding_subset, os.path.join(concat_dir, "noncodingConcat_180718.phy"), "phylip-relaxed")
