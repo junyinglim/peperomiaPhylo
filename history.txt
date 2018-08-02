@@ -1,100 +1,72 @@
-Boolmu = mu,
-Boolrho = 1.0,
-BoolrootAge = abs(originTime),
-BoolsamplingStrategy="uniform",
-Boolcondition = "time",
-Booltaxa = data.names()
-AbstractHomologousDiscreteCharacterData[][][]  )
-tau
-data.names()
-lambda
-mu
-tau ~ dnBirthDeath( lambda = lambda,
-Boolmu = mu,
-Boolrho = 1.0,
-BoolrootAge = abs(originTime),
-BoolsamplingStrategy="uniform",
-Boolcondition = "time",
-Booltaxa = data.names()
-AbstractHomologousDiscreteCharacterData[][][]  )
-originTime
-fossilTime
-originTime_sd
-originTime
-dnExponential
-1/3
-data
-62/3431
-dnLognormal
-dnSoftBoundUniformNormal
-dnLognormal
-dnLognormal(1, 0.5, 1)
-x ~ dnLognormal(1, 0.5, 1)
-x
-x ~ dnLognormal(1, 0.5, 0)
-x
-mymcmc.run(50000)
-dnLognormal
-x = "test"
-x in ["test", "test2"]
-x in v["test", "test2"]
-x %in% ["test", "test2"]
-in
-x == test[1]
-y= ["test", "test2"]
-x in y
-x intersect y
-intersect
-x == "test" | x == "test2"
-x == "test3" | x == "test2"
-x == "test3" | x == "test"
-data = readDiscreteCharacterData("/Users/Dropbox/Projects/2015/Peperomia/data/fossilBD/wanke2007.nex")
-data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/wanke2007.nex")
-readDiscreteCharacterData
-data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/wanke2007.nex")
-data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/wanke2007_clean.nex")
-data.ntax()
-data.ntaxa()
-data.names()
-105/4165
-dnFBDP
-taxa
-aristolochiaceae = clade("Aristolochia_acuminata", "Aristolochia_albida", "Aristolochia_arborea", "Aristolochia_baetica", "Aristolochia_bracteolata", "Aristolochia_brasiliensis", "Aristolochia_californica", "Aristolochia_cf_cordiflora", "Aristolochia_chilensis", "Aristolochia_cruenta", "Aristolochia_erecta", "Aristolochia_eriantha", "Aristolochia_gigantea", "Aristolochia_gorgona", "Aristolochia_macrantha", "Aristolochia_macrophylla", 'Aristolochia_manshurensis', "Aristolochia_parvifolia", "Aristolochia_pentandra", "Aristolochia_pistolochia", "Aristolochia_pitchinchensis", "Aristolochia_reticulata", "Aristolochia_salvadorensis", "Aristolochia_serpentaria", "Aristolochia_tomentosa", "Aristolochia_westlandii", "Asarum_caudatum", "Asarum_chingchengense", "Asarum_yakusimense", "Holostylis_reniforme", "Lactoris_fernandeziana", "Pararistolochia_promissa", "Pararistolochia_triactina", "Saruma_henryi", "Thottea_cormbosa", "Thottea_dependens", "Thottea_siliquosa")
+## IMPORT DATA ========================
+dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
+#dir="/Users/Marshall_Lab/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
+data = readDiscreteCharacterData(dir+"wanke2007_clean.nex")
+taxa = readTaxonData(filename=dir+"piperales_taxa.tsv")n_species <- taxa.size()n_branches <- 2* n_species - 2data.addMissingTaxa(taxa)mvi = 1mni = 1# DEFINE SUBSTITUTION AND TREE MODEL ========================# Substitution model parameterser ~ dnDirichlet( v(1,1,1,1,1,1) )pi ~ dnDirichlet( v(1,1,1,1) )moves[mvi++] = mvSimplexElementScale(er, alpha = 10, tune = true, weight = 3.0)moves[mvi++] = mvSimplexElementScale(pi, alpha = 10, tune = true, weight = 3.0)# Define rate matrixQ := fnGTR(er, pi)# Gamma distributed rate variationalpha ~ dnExponential( 1.0 )gamma_rates := fnDiscretizeGamma( alpha, alpha, 4, false )moves[mvi++] = mvScale(alpha, weight = 2.0, tune = true)# Proportion of invariant sitespinvar ~ dnBeta(1,1)moves[mvi++] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)moves[mvi++] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)pinvar.setValue(3.37E-2)## DIVERSIFICATION RATE FOR BIRTH-DEATH TREE MODEL ========================# Origin time of Piperales (based on UCLN min and max from Magallon et al 2015 New Phytologist)
+origin_time ~ dnUniform(127.0, 135.95)
+origin_time.setValue(127.0)
+moves[mvi++] = mvSlide(origin_time, delta=1, weight=10.0)
+# Sampling of modern taxa
+# 105 species in dataset;
+#Piperaceae=Peperomia(1,340)+Piper(2,139)+Manekia(6)+Zippelia(1)+Macropiper(12)+Verhuellia(2);
+#Saururaceae = 6
+#Aristolochiaceae = 8 genera, (525+121+1+6+1+4+1) includes Lactoris
+# Sampling = 105/4165
+rho=0.02521008
+# Speciation and extinction rate priors (N0 = 2, Nt = 4,165)
+net_diversification_rate := abs(ln( 4163.0) / origin_time)
+net_diversification_rate
+## IMPORT DATA ========================
+dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
+#dir="/Users/Marshall_Lab/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
+data = readDiscreteCharacterData(dir+"wanke2007_clean.nex")
+taxa = readTaxonData(filename=dir+"piperales_taxa.tsv")
+n_species <- taxa.size()
+n_branches <- 2* n_species - 2
+data.addMissingTaxa(taxa)
+mvi = 1
+mni = 1
+# DEFINE SUBSTITUTION AND TREE MODEL ========================
+# Substitution model parameters
+er ~ dnDirichlet( v(1,1,1,1,1,1) )pi ~ dnDirichlet( v(1,1,1,1) )moves[mvi++] = mvSimplexElementScale(er, alpha = 10, tune = true, weight = 3.0)moves[mvi++] = mvSimplexElementScale(pi, alpha = 10, tune = true, weight = 3.0)# Define rate matrixQ := fnGTR(er, pi)# Gamma distributed rate variationalpha ~ dnExponential( 1.0 )gamma_rates := fnDiscretizeGamma( alpha, alpha, 4, false )moves[mvi++] = mvScale(alpha, weight = 2.0, tune = true)# Proportion of invariant sitespinvar ~ dnBeta(1,1)moves[mvi++] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)moves[mvi++] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)pinvar.setValue(3.37E-2)## DIVERSIFICATION RATE FOR BIRTH-DEATH TREE MODEL ========================# Origin time of Piperales (based on UCLN min and max from Magallon et al 2015 New Phytologist)origin_time ~ dnUniform(127.0, 135.95)origin_time.setValue(127.0)moves[mvi++] = mvSlide(origin_time, delta=1, weight=10.0)# Sampling of modern taxa# 105 species in dataset;#Piperaceae=Peperomia(1,340)+Piper(2,139)+Manekia(6)+Zippelia(1)+Macropiper(12)+Verhuellia(2);
+#Saururaceae = 6
+#Aristolochiaceae = 8 genera, (525+121+1+6+1+4+1) includes Lactoris
+# Sampling = 105/4165
+rho=0.02521008
+# Speciation and extinction rate priors (N0 = 2, Nt = 4,165)
+net_diversification_rate := abs(ln( 4163.0) / origin_time)
+speciation_rate ~ dnExponential( lambda = net_diversification_rate )
+speciation_rate.setValue(0.05)
+turnover ~ dnUniform(0, 1)
+extinction_rate := turnover * speciation_rate
+extinction_rate.setValue(0.04)
+# speciation_rate ~ dnExponential(10)
+# extinction_rate ~ dnExponential(10)
+# speciation_rate.setValue(0.06)
+# extinction_rate.setValue(0.05)
+moves[mvi++] = mvScale(speciation_rate, lambda=10.0, weight=20.0)
+moves[mvi++] = mvScale(turnover, lambda=10.0, weight=20.0)
+# moves[mvi++] = mvScale(extinction_rate, lambda=10.0, weight=20.0)
+# updownmove = mvUpDownScale(weight = 10.0)
+# updownmove.addVariable(speciation_rate, TRUE)
+# updownmove.addVariable(extinction_rate, TRUE)
+# moves[mvi++] = updownmove
+# Fossil sampling rate
+psi ~ dnExponential(1)
+# moves[mvi++] = mvScale(psi, lambda=0.01, weight=1)
+# moves[mvi++] = mvScale(psi, lambda=0.1, weight=1)
+moves[mvi++] = mvScale(psi, lambda=2, weight=3)
+fbd_dist = dnFBDP(origin = origin_time, lambda = speciation_rate, mu = extinction_rate, psi = psi, rho = rho, taxa = taxa)
+# NOTE: lambda and mu MUST be stochastic nodes (not deterministic ones)
+## FOSSIL CONSTRAINTS
 canellales = clade("Drimys_lanceolata", "Pseudowintera_colorata", "Canella_winterana")
-canellales
-canellales.len()
-canellales.taxa()
-canellales
-aristolochiaceae = clade("Aristolochia_acuminata", "Aristolochia_albida", "Aristolochia_arborea", "Aristolochia_baetica", "Aristolochia_bracteolata", "Aristolochia_brasiliensis", "Aristolochia_californica", "Aristolochia_cf_cordiflora", "Aristolochia_chilensis", "Aristolochia_cruenta", "Aristolochia_erecta", "Aristolochia_eriantha", "Aristolochia_gigantea", "Aristolochia_gorgona", "Aristolochia_macrantha", "Aristolochia_macrophylla", 'Aristolochia_manshurensis', "Aristolochia_parvifolia", "Aristolochia_pentandra", "Aristolochia_pistolochia", "Aristolochia_pitchinchensis", "Aristolochia_reticulata", "Aristolochia_salvadorensis", "Aristolochia_serpentaria", "Aristolochia_tomentosa", "Aristolochia_westlandii", "Asarum_caudatum", "Asarum_chingchengense", "Asarum_yakusimense", "Holostylis_reniforme", "Lactoris_fernandeziana", "Pararistolochia_promissa", "Pararistolochia_triactina", "Saruma_henryi", "Thottea_cormbosa", "Thottea_dependens", "Thottea_siliquosa")
-aristolochiaceae = clade("Aristolochia_acuminata", "Aristolochia_albida", "Aristolochia_arborea", "Aristolochia_baetica", "Aristolochia_bracteolata", "Aristolochia_brasiliensis", "Aristolochia_californica", "Aristolochia_cf_cordiflora", "Aristolochia_chilensis", "Aristolochia_cruenta", "Aristolochia_erecta", "Aristolochia_eriantha", "Aristolochia_gigantea", "Aristolochia_gorgona", "Aristolochia_macrantha", "Aristolochia_macrophylla", "Aristolochia_manshurensis", "Aristolochia_parvifolia", "Aristolochia_pentandra", "Aristolochia_pistolochia", "Aristolochia_pitchinchensis", "Aristolochia_reticulata", "Aristolochia_salvadorensis", "Aristolochia_serpentaria", "Aristolochia_tomentosa", "Aristolochia_westlandii", "Asarum_caudatum", "Asarum_chingchengense", "Asarum_yakusimense", "Holostylis_reniforme", "Lactoris_fernandeziana", "Pararistolochia_promissa", "Pararistolochia_triactina", "Saruma_henryi", "Thottea_cormbosa", "Thottea_dependens", "Thottea_siliquosa")
-saururaceae_intervals = readDataDelimitedFile(file="saururaceae_fossil_interval.tsv", header=true)
-saururaceae_intervals = readDataDelimitedFile(file="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/saururaceae_fossil_interval.tsv", header=true)
-saururaceae_intervals
-saururaceae_intervals[[1]]
-saururaceae_intervals[1]
-saururaceae_intervals[2]
-saururaceae_intervals.size()
-piperaceae_intervals = readDataDelimitedFile(file="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/piperaceae_fossil_interval.tsv", header=true)
-piperaceae_intervals.size()
-aristolochiaceae_intervals = readDataDelimitedFile(file="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/aristolochiaceae_fossil_interval.tsv", header=true)
-aristolochiaceae_intervals.size()
-clade(piperaceae,saururaceae)
-clade(piperaceae,saururaceae)canellales = clade("Drimys_lanceolata", "Pseudowintera_colorata", "Canella_winterana")
-aristolochiaceae = clade("Aristolochia_acuminata", "Aristolochia_albida", "Aristolochia_arborea", "Aristolochia_baetica", "Aristolochia_bracteolata", "Aristolochia_brasiliensis", "Aristolochia_californica", "Aristolochia_cf_cordiflora", "Aristolochia_chilensis", "Aristolochia_cruenta", "Aristolochia_erecta", "Aristolochia_eriantha", "Aristolochia_gigantea", "Aristolochia_gorgona", "Aristolochia_macrantha", "Aristolochia_macrophylla", "Aristolochia_manshurensis", "Aristolochia_parvifolia", "Aristolochia_pentandra", "Aristolochia_pistolochia", "Aristolochia_pitchinchensis", "Aristolochia_reticulata", "Aristolochia_salvadorensis", "Aristolochia_serpentaria", "Aristolochia_tomentosa", "Aristolochia_westlandii", "Asarum_caudatum", "Asarum_chingchengense", "Asarum_yakusimense", "Holostylis_reniforme", "Lactoris_fernandeziana", "Pararistolochia_promissa", "Pararistolochia_triactina", "Saruma_henryi", "Thottea_cormbosa", "Thottea_dependens", "Thottea_siliquosa")
-saururaceae = clade("Anemopsis_californica", "Houttuynia_cordata", "Gymnotheca_chinensis", "Saururus_cernuus", "Saururus_chinensis")
-piperaceae = clade("Macropiper_excelsum", "Macropiper_hooglandii",
-   "Manekia_naranjouna", "Manekia_sydowii", "Peperomia_argyreia", "Peperomia_bicolor", "Peperomia_blanda", "Peperomia_clusifolia", "Peperomia_cuspidilimba", "Peperomia_cyclaminoides", "Peperomia_fraseri", "Peperomia_glabella", "Peperomia_graveolens", "Peperomia_hylophila", "Peperomia_inaequalifolia", "Peperomia_macrostachya", "Peperomia_magnolifolia", "Peperomia_marmorata", "Peperomia_maypuensis", "Peperomia_metallica", "Peperomia_perciliata", "Peperomia_pereskifolia", "Peperomia_pernambucensis", "Peperomia_pitcairnensis", "Peperomia_ppucu_ppucu", "Peperomia_r_v_rotundifolia", "Peperomia_rhombea", "Peperomia_spec_Zaire_298N", "Peperomia_trifolia", "Peperomia_tuisana", "Peperomia_vinasiana", "Piper_aduncum_MAJ076", "Piper_aduncum_MAJ200", "Piper_arieanum", "Piper_augustum", "Piper_auritum", "Piper_bavinum", "Piper_caninum", "Piper_cinereum", "Piper_crocathum", "Piper_decuma", "Piper_flagelicuspe", "Piper_hispidum", "Piper_longum", "Piper_magnificum", "Piper_michelianum", "Piper_muncha", "Piper_nigrum", "Piper_ornatum", "Piper_peltatum", "Piper_penninerve", "Piper_pulchrum", "Piper_reticulatum_MAJ062", "Piper_reticulatum_MAJ128", "Piper_spoliatum", "Piper_subpedale", "Piper_woody", "Trianaeopiper_bullatum", "Trinaeopiper_conifertinodum", "Zippelia_begonieaflora")
-canellales = clade("Drimys_lanceolata", "Pseudowintera_colorata", "Canella_winterana")
-aristolochiaceae = clade("Aristolochia_acuminata", "Aristolochia_albida", "Aristolochia_arborea", "Aristolochia_baetica", "Aristolochia_bracteolata", "Aristolochia_brasiliensis", "Aristolochia_californica", "Aristolochia_cf_cordiflora", "Aristolochia_chilensis", "Aristolochia_cruenta", "Aristolochia_erecta", "Aristolochia_eriantha", "Aristolochia_gigantea", "Aristolochia_gorgona", "Aristolochia_macrantha", "Aristolochia_macrophylla", "Aristolochia_manshurensis", "Aristolochia_parvifolia", "Aristolochia_pentandra", "Aristolochia_pistolochia", "Aristolochia_pitchinchensis", "Aristolochia_reticulata", "Aristolochia_salvadorensis", "Aristolochia_serpentaria", "Aristolochia_tomentosa", "Aristolochia_westlandii", "Asarum_caudatum", "Asarum_chingchengense", "Asarum_yakusimense", "Holostylis_reniforme", "Lactoris_fernandeziana", "Pararistolochia_promissa", "Pararistolochia_triactina", "Saruma_henryi", "Thottea_cormbosa", "Thottea_dependens", "Thottea_siliquosa")
-saururaceae = clade("Anemopsis_californica", "Houttuynia_cordata", "Gymnotheca_chinensis", "Saururus_cernuus", "Saururus_chinensis")
-piperaceae = clade("Macropiper_excelsum", "Macropiper_hooglandii",
-   "Manekia_naranjouna", "Manekia_sydowii", "Peperomia_argyreia", "Peperomia_bicolor", "Peperomia_blanda", "Peperomia_clusifolia", "Peperomia_cuspidilimba", "Peperomia_cyclaminoides", "Peperomia_fraseri", "Peperomia_glabella", "Peperomia_graveolens", "Peperomia_hylophila", "Peperomia_inaequalifolia", "Peperomia_macrostachya", "Peperomia_magnolifolia", "Peperomia_marmorata", "Peperomia_maypuensis", "Peperomia_metallica", "Peperomia_perciliata", "Peperomia_pereskifolia", "Peperomia_pernambucensis", "Peperomia_pitcairnensis", "Peperomia_ppucu_ppucu", "Peperomia_r_v_rotundifolia", "Peperomia_rhombea", "Peperomia_spec_Zaire_298N", "Peperomia_trifolia", "Peperomia_tuisana", "Peperomia_vinasiana", "Piper_aduncum_MAJ076", "Piper_aduncum_MAJ200", "Piper_arieanum", "Piper_augustum", "Piper_auritum", "Piper_bavinum", "Piper_caninum", "Piper_cinereum", "Piper_crocathum", "Piper_decuma", "Piper_flagelicuspe", "Piper_hispidum", "Piper_longum", "Piper_magnificum", "Piper_michelianum", "Piper_muncha", "Piper_nigrum", "Piper_ornatum", "Piper_peltatum", "Piper_penninerve", "Piper_pulchrum", "Piper_reticulatum_MAJ062", "Piper_reticulatum_MAJ128", "Piper_spoliatum", "Piper_subpedale", "Piper_woody", "Trianaeopiper_bullatum", "Trinaeopiper_conifertinodum", "Zippelia_begonieaflora")
-clade_extant=clade(piperaceae, saururaceae)
-clade_extant.size()
-piperaceae.size(
-)
-clade_extant = clade(saururaceae, piperaceae, aristolochiaceae, canellales)
-clade_extant.size()
-data.names()
-taxa <- readTaxonData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/piperales_taxa.tsv")
-taxa.size()
+aristolochiaceae = clade("Aristolochia_acuminata","Aristolochia_albida","Aristolochia_arborea","Aristolochia_baetica","Aristolochia_bracteolata","Aristolochia_brasiliensis", "Aristolochia_californica","Aristolochia_cf_cordiflora","Aristolochia_chilensis", "Aristolochia_cruenta", "Aristolochia_erecta","Aristolochia_eriantha", "Aristolochia_gigantea", "Aristolochia_gorgona","Aristolochia_macrantha", "Aristolochia_macrophylla", "Aristolochia_manshurensis","Aristolochia_parvifolia", "Aristolochia_pentandra", "Aristolochia_pistolochia","Aristolochia_pitchinchensis", "Aristolochia_reticulata", "Aristolochia_salvadorensis","Aristolochia_serpentaria", "Aristolochia_tomentosa", "Aristolochia_westlandii","Asarum_caudatum", "Asarum_chingchengense", "Asarum_yakusimense", "Holostylis_reniforme","Lactoris_fernandeziana", "Pararistolochia_promissa", "Pararistolochia_triactina","Saruma_henryi", "Thottea_cormbosa", "Thottea_dependens", "Thottea_siliquosa","Hexagyne_philippiana", "Lactoripollenites_africanus")
+saururaceae = clade("Anemopsis_californica", "Houttuynia_cordata", "Gymnotheca_chinensis", "Saururus_cernuus", "Saururus_chinensis", "Saururus_aquilae", "Saururus_tuckerae", "Saururus_bliobatus", "Saururus_stoobensis", "Houttuynia_bavarica", "Saururopsis_niponensis")
+piperaceae = clade("Macropiper_excelsum", "Macropiper_hooglandii","Manekia_naranjouna", "Manekia_sydowii", "Peperomia_argyreia", "Peperomia_bicolor", "Peperomia_blanda", "Peperomia_clusifolia", "Peperomia_cuspidilimba", "Peperomia_cyclaminoides", "Peperomia_fraseri", "Peperomia_glabella", "Peperomia_graveolens", "Peperomia_hylophila", "Peperomia_inaequalifolia", "Peperomia_macrostachya", "Peperomia_magnolifolia", "Peperomia_marmorata", "Peperomia_maypuensis", "Peperomia_metallica", "Peperomia_perciliata", "Peperomia_pereskifolia", "Peperomia_pernambucensis", "Peperomia_pitcairnensis", "Peperomia_ppucu_ppucu", "Peperomia_r_v_rotundifolia", "Peperomia_rhombea", "Peperomia_spec_Zaire_298N", "Peperomia_trifolia", "Peperomia_tuisana", "Peperomia_vinasiana", "Piper_aduncum_MAJ076", "Piper_aduncum_MAJ200", "Piper_arieanum", "Piper_augustum", "Piper_auritum", "Piper_bavinum", "Piper_caninum", "Piper_cinereum", "Piper_crocathum", "Piper_decuma", "Piper_flagelicuspe", "Piper_hispidum", "Piper_longum", "Piper_magnificum", "Piper_michelianum", "Piper_muncha", "Piper_nigrum", "Piper_ornatum", "Piper_peltatum", "Piper_penninerve", "Piper_pulchrum", "Piper_reticulatum_MAJ062", "Piper_reticulatum_MAJ128", "Piper_spoliatum", "Piper_subpedale", "Piper_woody", "Trianaeopiper_bullatum", "Trinaeopiper_conifertinodum", "Zippelia_begonieaflora", "Piper_margaritae", "Piper_bartlingianum")
+ingroup = clade(saururaceae, piperaceae, aristolochiaceae)
+allconstraints = v(saururaceae, piperaceae, aristolochiaceae, canellales)
+speciation_rate
+net_diversification_rate
+fbd_tree ~ dnConstrainedTopology(fbd_dist, constraints=v(ingroup))
+fbd_tree
+

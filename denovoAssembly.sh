@@ -42,17 +42,8 @@ do
     #velveth $DIR/${index}_chloroplast/velvet 31 -shortPaired -fastq -separate $DIR/${index}_chloroplast/filtered_1_paired.fq $DIR/${index}_chloroplast/filtered_2_paired.fq
     #velvetg $DIR/${index}_chloroplast/velvet -amos_file yes -read_trkg yes
 
+    # Fast-plast uses Trimmomatic to trim reads
     printf "\nUsing Fast-plast to assemble genomes: $index\n"
     cd $DIR
-    perl $fastplast -1 $DIR/${index}_*R1*.fastq -2 $DIR/${index}_*R2*.fastq -n ${index}_denovo --adapters Truseq --threads 4 --coverage_analysis --user_bowtie $indexedGenome 
-    
+    perl $fastplast -1 $DIR/${index}_*R1*.fastq -2 $DIR/${index}_*R2*.fastq -n ${index}_denovo --adapters Truseq --threads 4 --coverage_analysis --user_bowtie $indexedGenome
 done
-#-s [$DIR/${index}_trimmed_U1.fastq,$DIR/${index}_trimmed_U2.fastq]
-
-
-# Paths
-#"/Users/junyinglim/Dropbox/Projects/Programs/Trimmomatic-0.36"
-#"/Users/junyinglim/Dropbox/Projects/Programs/SPAdes-3.12.0-Darwin/"
-#"/Users/junyinglim/Dropbox/Projects/Programs/sspace_basic"
-
-# Had to go into the afin folder and make

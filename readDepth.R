@@ -1,3 +1,5 @@
+## CALCULATE SUMMARY STATISTICS OF REFERENCE ASSEMBLIES
+
 library(stringr)
 
 main.dir <- "~/Dropbox/Projects/2015/Peperomia/data/chloroplast_bwa_readdepth/"
@@ -19,7 +21,11 @@ for(i in 1:length(readDepth)){
 
 depthsummary <- data.frame(sample_ID, meanCoverage = signif(meanCoverage, 3), medianCoverage)
 
-write.csv(summary, file.path(output.dir, "readDepthSummary.csv"), row.names = FALSE)
+write.csv(depthsummary, file.path(output.dir, "readDepthSummary.csv"), row.names = FALSE)
+
+range(depthsummary$meanCoverage)
+mean(depthsummary$meanCoverage)
+median(depthsummary$medianCoverage)
 
 # Calculate percentage ambiguous
 library(seqinr)

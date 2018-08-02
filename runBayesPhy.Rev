@@ -1,15 +1,9 @@
 ### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR PEPEROMIA\
 
 # IMPORT DATA ==============
-#fileNames <- listFiles("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/alignments")
-#fileNames <- listFiles("/home/junyinglim/alignments")
-# n_data_subsets <- fileNames.size()
-# for (i in 1:n_data_subsets) {
-#     data[i] = readDiscreteCharacterData(fileNames[i])
-# }
-
 stem = "bayes_nonclock"
-#data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/concatAlign_310818.phy")
+dir = "/home/junyinglim/Dropbox/Projects/2015/Peper"
+dir = "/home/junyinglim/Dropbox/Projects/2015/Peperomia"
 data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/pep_160618/concatAlign_160618_clean.fasta")
 
 
@@ -55,15 +49,15 @@ for (i in 1:n_branches) {
 }
 
 # Invariant sites
-# pinvar ~ dnBeta(1,1)
-# moves[++mvi] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
-# moves[++mvi] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
+pinvar ~ dnBeta(1,1)
+moves[++mvi] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
+moves[++mvi] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
 
 TL := sum(bl)
 psi := treeAssembly(topology, bl)
 
 ## GENERATE MODEL ==============
-phyloSeq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=gamma_rates,  type="DNA") #pInv=pinvar
+phyloSeq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=gamma_rates, pInv=pinvar, type="DNA") 
 #phyloSeq.clamp(concat)
 phyloSeq.clamp(data)
 

@@ -4,8 +4,8 @@
 #   samtools, bowtie2, trimmomatic, gunzip
 #   bcftools (tools for variant calling)
 
-method="bwa" # bwa or bowtie2
-genome="ribosome" # chloroplast or ribosome
+method="bowtie" # bwa or bowtie
+genome="chloroplast" # chloroplast or ribosome
 hostname=$(hostname)
 
 # Directories for the server (space between if and square bracket is necessary)
@@ -26,6 +26,7 @@ elif [ "$hostname" = "Juns-MacBook-Pro.local" ]; then
     trimmomatic="/Users/junyinglim/Dropbox/Projects/Programs/Trimmomatic-0.36"
     
     if [ "$genome" = "chloroplast" ]; then
+        echo Hello
         indexedGenome="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/referenceGenome/piperchloroplast"
         referenceGenome="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/referenceGenome/referenceGenome_KT223569.1.fasta"    
     elif [ "$genome" = "ribosome" ]; then
@@ -45,7 +46,7 @@ do
     s=${s##*/}
     index=${s%_S*}
 
-    # # Trimmming sequences
+    # Trimmming sequences
     # printf "\nUncompressing index: $index"
     # gunzip $DIR/${index}_*R1*.fastq.gz -k -d
     # gunzip $DIR/${index}_*R2*.fastq.gz -k -d
@@ -64,15 +65,17 @@ do
 
         printf "\nDetermine read depth of $index\n"
         samtools depth $DIR/${index}_bwa_${genome}_sorted.sam > $DIR/${index}_readdepth.tsv
-        # printf "\nConvert to pile up format\n"
-        # samtools mpileup -Q 33 -Agf $referenceGenome $DIR/${index}_bwa_${genome}_sorted.sam > $DIR/${index}_bwa_${genome}.mpilup
 
-        # printf "\nGenerate consensus genotype: $index\n"
-        # bcftools call -c $DIR/${index}_bwa_${genome}.mpilup > $DIR/${index}_bwa_${genome}.vcf
+        printf "\nConvert to pile up format\n"
+        samtools mpileup -Q 33 -Agf $referenceGenome $DIR/${index}_bwa_${genome}_sorted.sam > $DIR/${index}_bwa_${genome}.mpilup
 
-        # printf "\nConvert vcf file back to a fasta\n"
-        # vcfutils.pl vcf2fq $DIR/${index}_bwa_${genome}.vcf > $DIR/${index}_bwa_${genome}_assembled.fastq
-        # seqtk seq -A $DIR/${index}_bwa_${genome}_assembled.fastq > $DIR/${index}_bwa_${genome}_assembled.fasta
+        printf "\nGenerate consensus genotype: $index\n"
+        bcftools call -c $DIR/${index}_bwa_${genome}.mpilup > $DIR/${index}_bwa_${genome}.vcf
+
+        printf "\nConvert vcf file back to a fasta\n"
+        vcfutils.pl vcf2fq $DIR/${index}_bwa_${genome}.vcf > $DIR/${index}_bwa_${genome}_assembled.fastq
+        seqtk seq -A $DIR/${index}_bwa_${genome}_assembled.fastq > $DIR/${index}_bwa_${genome}_assembled.fasta
+
     fi
 
     # USING BOWTIE ==================
@@ -86,6 +89,10 @@ do
         printf "\nSorting reads: $index" # Sorts reads by their aligned position to reference
         samtools sort $DIR/${index}_mapped.bam > $DIR/${index}_sorted.bam
 
+        # Produce
+        #samtools index PEZ-304_sorted.bam PEZ-304_mapped.bai
+
+        IOGA; 
         printf "\nDetermining read depth: $index" # Outputs sequencing depth in a tab delimited format
         samtools depth $DIR/${index}_sorted.bam > $DIR/${index}_read_depth.tsv
 
@@ -99,9 +106,14 @@ do
         printf "\nFiltering for read depth >= 10: $index" # not sure this code works
         vcftools --minDP 10 --vcf $DIR/${index}.vcf --out $DIR/filtered --recode --recode-INFO-all
 
-        printf "Convert vcf file back into a fasta"
+        printf "\nConvert vcf file back into a fasta"
         vcfutils.pl vcf2fq $DIR/filtered.recode.vcf > $DIR/${index}_assembled.fastq # -d masking for heterozygosity and low coverage
         seqtk seq -A $DIR/${index}_assembled.fastq > $DIR/${index}_assembled.fasta    
+
+        printf "\nCleaning up "
+
+
+
     fi
 
 done

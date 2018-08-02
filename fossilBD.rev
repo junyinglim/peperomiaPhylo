@@ -1,7 +1,8 @@
 ## IMPORT DATA ========================
 dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
-data = readDiscreteCharacterData(dir + "wanke2007_clean.nex")
-taxa = readTaxonData(dir + "piperales_taxa.tsv")
+#dir="/Users/Marshall_Lab/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
+data = readDiscreteCharacterData(dir+"wanke2007_clean.nex")
+taxa = readTaxonData(filename=dir+"piperales_taxa.tsv")
 n_species <- taxa.size()
 n_branches <- 2* n_species - 2
 
@@ -15,31 +16,29 @@ mni = 1
 # Substitution model parameters
 er ~ dnDirichlet( v(1,1,1,1,1,1) )
 pi ~ dnDirichlet( v(1,1,1,1) )
-moves[mvi++] = mvSimplexElementScale(er, alpha = 10, tune = true, weight = 1)
-moves[mvi++] = mvSimplexElementScale(pi, alpha = 10, tune = true, weight = 1)
+moves[mvi++] = mvSimplexElementScale(er, alpha = 10, tune = true, weight = 3.0)
+moves[mvi++] = mvSimplexElementScale(pi, alpha = 10, tune = true, weight = 3.0)
 
 # Define rate matrix
 Q := fnGTR(er, pi)
 
 # Gamma distributed rate variation
-alpha_prior_mean <- ln(2.0)
-alpha_prior_sd <- 0.587405
-alpha ~ dnLognormal( alpha_prior_mean, alpha_prior_sd )
+alpha ~ dnExponential( 1.0 )
 gamma_rates := fnDiscretizeGamma( alpha, alpha, 4, false )
-moves[mvi++] = mvScale(alpha, weight = 2, tune = true)
+moves[mvi++] = mvScale(alpha, weight = 2.0, tune = true)
 
 # Proportion of invariant sites
 pinvar ~ dnBeta(1,1)
 moves[mvi++] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
 moves[mvi++] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
-
+pinvar.setValue(3.37E-2)
 
 ## DIVERSIFICATION RATE FOR BIRTH-DEATH TREE MODEL ========================
-# Origin time (based on UCLN min and max from Magallon et al 2015 New Phytologist)
+# Origin time of Piperales (based on UCLN min and max from Magallon et al 2015 New Phytologist)
+
 origin_time ~ dnUniform(127.0, 135.95)
-moves[mvi++] = mvSlide(origin_time, delta=0.01, weight=5.0)
-moves[mvi++] = mvSlide(origin_time, delta=0.1, weight=5.0)
-moves[mvi++] = mvSlide(origin_time, delta=1, weight=5.0)
+origin_time.setValue(127.0)
+moves[mvi++] = mvSlide(origin_time, delta=1, weight=10.0)
 
 # Sampling of modern taxa
 # 105 species in dataset;
@@ -49,53 +48,48 @@ moves[mvi++] = mvSlide(origin_time, delta=1, weight=5.0)
 # Sampling = 105/4165
 rho=0.02521008
 
-# Speciation and extinction rate priors
-speciation_rate ~ dnExponential(10)
-extinction_rate ~ dnExponential(10)
+# Speciation and extinction rate priors (N0 = 2, Nt = 4,165)
+net_diversification_rate := abs(ln( 4163.0) / origin_time)
+speciation_rate ~ dnExponential( lambda = 1/net_diversification_rate )
+speciation_rate.setValue(0.05)
 
-moves[mvi++] = mvScale(speciation_rate, lambda=0.01, weight=1)
-moves[mvi++] = mvScale(speciation_rate, lambda=0.1, weight=1)
-moves[mvi++] = mvScale(speciation_rate, lambda=1.0, weight=1)
-moves[mvi++] = mvScale(extinction_rate, lambda=0.01, weight=1)
-moves[mvi++] = mvScale(extinction_rate, lambda=0.1, weight=1)
-moves[mvi++] = mvScale(extinction_rate, lambda=1, weight=1)
+turnover ~ dnUniform(0, 1)
+extinction_rate := turnover * speciation_rate
+
+# speciation_rate ~ dnExponential(10)
+# extinction_rate ~ dnExponential(10)
+# speciation_rate.setValue(0.06)
+# extinction_rate.setValue(0.05)
+
+moves[mvi++] = mvScale(speciation_rate, lambda=10.0, weight=20.0)
+moves[mvi++] = mvScale(turnover, lambda=10.0, weight=20.0)
+
+# moves[mvi++] = mvScale(extinction_rate, lambda=10.0, weight=20.0)
+
+# updownmove = mvUpDownScale(weight = 10.0)
+# updownmove.addVariable(speciation_rate, TRUE)
+# updownmove.addVariable(extinction_rate, TRUE)
+# moves[mvi++] = updownmove
 
 # Fossil sampling rate
-psi ~ dnExponential(10)
-moves[mvi++] = mvScale(psi, lambda=0.01, weight=1)
-moves[mvi++] = mvScale(psi, lambda=0.1, weight=1)
-moves[mvi++] = mvScale(psi, lambda=1, weight=1)
+psi ~ dnExponential(1)
+# moves[mvi++] = mvScale(psi, lambda=0.01, weight=1)
+# moves[mvi++] = mvScale(psi, lambda=0.1, weight=1)
+moves[mvi++] = mvScale(psi, lambda=2, weight=3)
 
-# Must rho = 1?
-#rho = 1
 fbd_dist = dnFBDP(origin = origin_time, lambda = speciation_rate, mu = extinction_rate, psi = psi, rho = rho, taxa = taxa)
 # NOTE: lambda and mu MUST be stochastic nodes (not deterministic ones)
 
 ## FOSSIL CONSTRAINTS
-# taxa = readTaxonData("bears_taxa.tsv")
-# data = readDiscreteCharacterData("bears_cytb.nex")
-# speciation_rate ~ dnExponential(10)
-# extinction_rate ~ dnExponential(10)
-# origin_time ~ dnUnif(37.0, 55.0)
-# psi ~ dnExponential(10)
-# fbd_dist = dnFBDP(origin = origin_time, lambda = speciation_rate, mu = extinction_rate, psi = psi, rho = 1, taxa = taxa)
-# clade_ursinae = clade("Melursus_ursinus", "Ursus_arctos", "Ursus_maritimus",
-#                     "Helarctos_malayanus", "Ursus_americanus", "Ursus_thibetanus",
-#                     "Ursus_abstrusus", "Ursus_spelaeus")
-# constraints = v(clade_ursinae)
-# fbd_tree ~ dnConstrainedTopology(fbd_dist, constraints=constraints)
-
-
 canellales = clade("Drimys_lanceolata", "Pseudowintera_colorata", "Canella_winterana")
 aristolochiaceae = clade("Aristolochia_acuminata","Aristolochia_albida","Aristolochia_arborea","Aristolochia_baetica","Aristolochia_bracteolata","Aristolochia_brasiliensis", "Aristolochia_californica","Aristolochia_cf_cordiflora","Aristolochia_chilensis", "Aristolochia_cruenta", "Aristolochia_erecta","Aristolochia_eriantha", "Aristolochia_gigantea", "Aristolochia_gorgona","Aristolochia_macrantha", "Aristolochia_macrophylla", "Aristolochia_manshurensis","Aristolochia_parvifolia", "Aristolochia_pentandra", "Aristolochia_pistolochia","Aristolochia_pitchinchensis", "Aristolochia_reticulata", "Aristolochia_salvadorensis","Aristolochia_serpentaria", "Aristolochia_tomentosa", "Aristolochia_westlandii","Asarum_caudatum", "Asarum_chingchengense", "Asarum_yakusimense", "Holostylis_reniforme","Lactoris_fernandeziana", "Pararistolochia_promissa", "Pararistolochia_triactina","Saruma_henryi", "Thottea_cormbosa", "Thottea_dependens", "Thottea_siliquosa","Hexagyne_philippiana", "Lactoripollenites_africanus")
 saururaceae = clade("Anemopsis_californica", "Houttuynia_cordata", "Gymnotheca_chinensis", "Saururus_cernuus", "Saururus_chinensis", "Saururus_aquilae", "Saururus_tuckerae", "Saururus_bliobatus", "Saururus_stoobensis", "Houttuynia_bavarica", "Saururopsis_niponensis")
 piperaceae = clade("Macropiper_excelsum", "Macropiper_hooglandii","Manekia_naranjouna", "Manekia_sydowii", "Peperomia_argyreia", "Peperomia_bicolor", "Peperomia_blanda", "Peperomia_clusifolia", "Peperomia_cuspidilimba", "Peperomia_cyclaminoides", "Peperomia_fraseri", "Peperomia_glabella", "Peperomia_graveolens", "Peperomia_hylophila", "Peperomia_inaequalifolia", "Peperomia_macrostachya", "Peperomia_magnolifolia", "Peperomia_marmorata", "Peperomia_maypuensis", "Peperomia_metallica", "Peperomia_perciliata", "Peperomia_pereskifolia", "Peperomia_pernambucensis", "Peperomia_pitcairnensis", "Peperomia_ppucu_ppucu", "Peperomia_r_v_rotundifolia", "Peperomia_rhombea", "Peperomia_spec_Zaire_298N", "Peperomia_trifolia", "Peperomia_tuisana", "Peperomia_vinasiana", "Piper_aduncum_MAJ076", "Piper_aduncum_MAJ200", "Piper_arieanum", "Piper_augustum", "Piper_auritum", "Piper_bavinum", "Piper_caninum", "Piper_cinereum", "Piper_crocathum", "Piper_decuma", "Piper_flagelicuspe", "Piper_hispidum", "Piper_longum", "Piper_magnificum", "Piper_michelianum", "Piper_muncha", "Piper_nigrum", "Piper_ornatum", "Piper_peltatum", "Piper_penninerve", "Piper_pulchrum", "Piper_reticulatum_MAJ062", "Piper_reticulatum_MAJ128", "Piper_spoliatum", "Piper_subpedale", "Piper_woody", "Trianaeopiper_bullatum", "Trinaeopiper_conifertinodum", "Zippelia_begonieaflora", "Piper_margaritae", "Piper_bartlingianum")
 
 ingroup = clade(saururaceae, piperaceae, aristolochiaceae)
-allconstraints = [saururaceae, piperaceae, aristolochiaceae, canellales, ingroup]
+allconstraints = v(saururaceae, piperaceae, aristolochiaceae, canellales)
 
-fbd_tree ~ dnConstrainedTopology(fbd_dist, constraints=allconstraints)
-
+fbd_tree ~ dnConstrainedTopology(fbd_dist, constraints=v(ingroup))
 
 moves[mvi++] = mvFNPR(fbd_tree, weight=15.0)
 moves[mvi++] = mvCollapseExpandFossilBranch(fbd_tree, origin_time, weight=6.0)
@@ -140,12 +134,12 @@ for(i in 1:aristolochiaceae_intervals.size()){
     fossil[fossil_counter-1].clamp( 0 )
 }
 
-moves[mvi++] = mvFossilTimeSlideUniform(fbd_tree, origin_time, weight=5.0)
+moves[mvi++] = mvFossilTimeSlideUniform(fbd_tree, origin_time, weight=30.0)
 
 
 # Define some monitors that might be interesting
 num_samp_anc := fbd_tree.numSampledAncestors() 
-age_extant := tmrca(fbd_tree, piperaceae)
+age_piperaceae := tmrca(fbd_tree, piperaceae)
 
 # #pruned_tree := fnPruneTree(fbd_tree, pruneTaxa=v(taxa[17],taxa[20]))
 
@@ -155,18 +149,18 @@ age_extant := tmrca(fbd_tree, piperaceae)
 num_rate_categories = 10
 ucln_mean ~ dnUniform(1E-6, 10)
 ucln_log_mean := ln( ucln_mean )
-ucln_sigma ~ dnExponential(10.0)
+ucln_sigma <- 1 #~ dnExponential(10.0)
 rate_categories := fnDiscretizeDistribution( dnLognormal( ucln_log_mean, ucln_sigma ), num_rate_categories)
 rate_probs <- simplex(rep(1, num_rate_categories))
 
-moves[mvi++] = mvSlide(ucln_mean, delta = 1, weight = 2.0, tune = true)
-moves[mvi++] = mvScale(ucln_mean, lambda = 1, weight = 5.0, tune = true) #
-moves[mvi++] = mvScale(ucln_sigma, lambda = 1, weight = 5.0, tune = true) #
+moves[mvi++] = mvSlide(ucln_mean, delta = 3, weight = 2.0, tune = true)
+moves[mvi++] = mvScale(ucln_mean, lambda = 3, weight = 5.0, tune = true) #
+#moves[mvi++] = mvScale(ucln_sigma, lambda = 1, weight = 5.0, tune = true) #
 for(j in 1:n_branches){
     branch_rates[j] ~ dnMixture( rate_categories, rate_probs )
-    moves[mvi++] = mvMixtureAllocation( branch_rates[j], weight = 3.0 )
+    moves[mvi++] = mvMixtureAllocation( branch_rates[j], weight = 10.0 )
 }
-
+ucln_mean.setValue(4.34E-4)
 
 
 ## CREATE PHYLOCTMC MODEL
@@ -177,15 +171,15 @@ mymodel = model(seq)
 
 
 ## CREATE MONITORS
-
-monitors[mni++] = mnModel(filename=dir+"fbd.log", printgen=1)
-monitors[mni++] = mnFile(fbd_tree, filename= dir + "fbd.trees", printgen=1)
-monitors[mni++] = mnScreen(age_extant, printgen=1)
+run = 6
+monitors[mni++] = mnModel(filename=dir+ run + "fbd.log", printgen=1)
+monitors[mni++] = mnFile(fbd_tree, filename= dir + run + "fbd.trees", printgen=10)
+monitors[mni++] = mnScreen(age_piperaceae, printgen=1)
 
 ## RUN ANALYSIS
 mymcmc = mcmc(mymodel, moves, monitors, nruns = 1)
-# #mymcmc.burnin(20000, tuningInterval = 200)
-mymcmc.run(10000)#, underPrior = true)
+#mymcmc.burnin(10000, tuningInterval = 200)
+mymcmc.run(50000)#, underPrior = true)
 
 # # SUMMARIZE OUTPUT
 # #treetrace = readTreeTrace(output + lineage + "_gene.trees", treetype="clock")
