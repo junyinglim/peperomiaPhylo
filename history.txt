@@ -1,72 +1,100 @@
-## IMPORT DATA ========================
-dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
-#dir="/Users/Marshall_Lab/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
-data = readDiscreteCharacterData(dir+"wanke2007_clean.nex")
-taxa = readTaxonData(filename=dir+"piperales_taxa.tsv")n_species <- taxa.size()n_branches <- 2* n_species - 2data.addMissingTaxa(taxa)mvi = 1mni = 1# DEFINE SUBSTITUTION AND TREE MODEL ========================# Substitution model parameterser ~ dnDirichlet( v(1,1,1,1,1,1) )pi ~ dnDirichlet( v(1,1,1,1) )moves[mvi++] = mvSimplexElementScale(er, alpha = 10, tune = true, weight = 3.0)moves[mvi++] = mvSimplexElementScale(pi, alpha = 10, tune = true, weight = 3.0)# Define rate matrixQ := fnGTR(er, pi)# Gamma distributed rate variationalpha ~ dnExponential( 1.0 )gamma_rates := fnDiscretizeGamma( alpha, alpha, 4, false )moves[mvi++] = mvScale(alpha, weight = 2.0, tune = true)# Proportion of invariant sitespinvar ~ dnBeta(1,1)moves[mvi++] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)moves[mvi++] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)pinvar.setValue(3.37E-2)## DIVERSIFICATION RATE FOR BIRTH-DEATH TREE MODEL ========================# Origin time of Piperales (based on UCLN min and max from Magallon et al 2015 New Phytologist)
-origin_time ~ dnUniform(127.0, 135.95)
-origin_time.setValue(127.0)
-moves[mvi++] = mvSlide(origin_time, delta=1, weight=10.0)
-# Sampling of modern taxa
-# 105 species in dataset;
-#Piperaceae=Peperomia(1,340)+Piper(2,139)+Manekia(6)+Zippelia(1)+Macropiper(12)+Verhuellia(2);
-#Saururaceae = 6
-#Aristolochiaceae = 8 genera, (525+121+1+6+1+4+1) includes Lactoris
-# Sampling = 105/4165
-rho=0.02521008
-# Speciation and extinction rate priors (N0 = 2, Nt = 4,165)
-net_diversification_rate := abs(ln( 4163.0) / origin_time)
-net_diversification_rate
-## IMPORT DATA ========================
-dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
-#dir="/Users/Marshall_Lab/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
-data = readDiscreteCharacterData(dir+"wanke2007_clean.nex")
-taxa = readTaxonData(filename=dir+"piperales_taxa.tsv")
-n_species <- taxa.size()
-n_branches <- 2* n_species - 2
-data.addMissingTaxa(taxa)
-mvi = 1
-mni = 1
-# DEFINE SUBSTITUTION AND TREE MODEL ========================
-# Substitution model parameters
-er ~ dnDirichlet( v(1,1,1,1,1,1) )pi ~ dnDirichlet( v(1,1,1,1) )moves[mvi++] = mvSimplexElementScale(er, alpha = 10, tune = true, weight = 3.0)moves[mvi++] = mvSimplexElementScale(pi, alpha = 10, tune = true, weight = 3.0)# Define rate matrixQ := fnGTR(er, pi)# Gamma distributed rate variationalpha ~ dnExponential( 1.0 )gamma_rates := fnDiscretizeGamma( alpha, alpha, 4, false )moves[mvi++] = mvScale(alpha, weight = 2.0, tune = true)# Proportion of invariant sitespinvar ~ dnBeta(1,1)moves[mvi++] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)moves[mvi++] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)pinvar.setValue(3.37E-2)## DIVERSIFICATION RATE FOR BIRTH-DEATH TREE MODEL ========================# Origin time of Piperales (based on UCLN min and max from Magallon et al 2015 New Phytologist)origin_time ~ dnUniform(127.0, 135.95)origin_time.setValue(127.0)moves[mvi++] = mvSlide(origin_time, delta=1, weight=10.0)# Sampling of modern taxa# 105 species in dataset;#Piperaceae=Peperomia(1,340)+Piper(2,139)+Manekia(6)+Zippelia(1)+Macropiper(12)+Verhuellia(2);
-#Saururaceae = 6
-#Aristolochiaceae = 8 genera, (525+121+1+6+1+4+1) includes Lactoris
-# Sampling = 105/4165
-rho=0.02521008
-# Speciation and extinction rate priors (N0 = 2, Nt = 4,165)
-net_diversification_rate := abs(ln( 4163.0) / origin_time)
-speciation_rate ~ dnExponential( lambda = net_diversification_rate )
-speciation_rate.setValue(0.05)
-turnover ~ dnUniform(0, 1)
-extinction_rate := turnover * speciation_rate
-extinction_rate.setValue(0.04)
-# speciation_rate ~ dnExponential(10)
-# extinction_rate ~ dnExponential(10)
-# speciation_rate.setValue(0.06)
-# extinction_rate.setValue(0.05)
-moves[mvi++] = mvScale(speciation_rate, lambda=10.0, weight=20.0)
-moves[mvi++] = mvScale(turnover, lambda=10.0, weight=20.0)
-# moves[mvi++] = mvScale(extinction_rate, lambda=10.0, weight=20.0)
-# updownmove = mvUpDownScale(weight = 10.0)
-# updownmove.addVariable(speciation_rate, TRUE)
-# updownmove.addVariable(extinction_rate, TRUE)
-# moves[mvi++] = updownmove
-# Fossil sampling rate
-psi ~ dnExponential(1)
-# moves[mvi++] = mvScale(psi, lambda=0.01, weight=1)
-# moves[mvi++] = mvScale(psi, lambda=0.1, weight=1)
-moves[mvi++] = mvScale(psi, lambda=2, weight=3)
-fbd_dist = dnFBDP(origin = origin_time, lambda = speciation_rate, mu = extinction_rate, psi = psi, rho = rho, taxa = taxa)
-# NOTE: lambda and mu MUST be stochastic nodes (not deterministic ones)
-## FOSSIL CONSTRAINTS
-canellales = clade("Drimys_lanceolata", "Pseudowintera_colorata", "Canella_winterana")
-aristolochiaceae = clade("Aristolochia_acuminata","Aristolochia_albida","Aristolochia_arborea","Aristolochia_baetica","Aristolochia_bracteolata","Aristolochia_brasiliensis", "Aristolochia_californica","Aristolochia_cf_cordiflora","Aristolochia_chilensis", "Aristolochia_cruenta", "Aristolochia_erecta","Aristolochia_eriantha", "Aristolochia_gigantea", "Aristolochia_gorgona","Aristolochia_macrantha", "Aristolochia_macrophylla", "Aristolochia_manshurensis","Aristolochia_parvifolia", "Aristolochia_pentandra", "Aristolochia_pistolochia","Aristolochia_pitchinchensis", "Aristolochia_reticulata", "Aristolochia_salvadorensis","Aristolochia_serpentaria", "Aristolochia_tomentosa", "Aristolochia_westlandii","Asarum_caudatum", "Asarum_chingchengense", "Asarum_yakusimense", "Holostylis_reniforme","Lactoris_fernandeziana", "Pararistolochia_promissa", "Pararistolochia_triactina","Saruma_henryi", "Thottea_cormbosa", "Thottea_dependens", "Thottea_siliquosa","Hexagyne_philippiana", "Lactoripollenites_africanus")
-saururaceae = clade("Anemopsis_californica", "Houttuynia_cordata", "Gymnotheca_chinensis", "Saururus_cernuus", "Saururus_chinensis", "Saururus_aquilae", "Saururus_tuckerae", "Saururus_bliobatus", "Saururus_stoobensis", "Houttuynia_bavarica", "Saururopsis_niponensis")
-piperaceae = clade("Macropiper_excelsum", "Macropiper_hooglandii","Manekia_naranjouna", "Manekia_sydowii", "Peperomia_argyreia", "Peperomia_bicolor", "Peperomia_blanda", "Peperomia_clusifolia", "Peperomia_cuspidilimba", "Peperomia_cyclaminoides", "Peperomia_fraseri", "Peperomia_glabella", "Peperomia_graveolens", "Peperomia_hylophila", "Peperomia_inaequalifolia", "Peperomia_macrostachya", "Peperomia_magnolifolia", "Peperomia_marmorata", "Peperomia_maypuensis", "Peperomia_metallica", "Peperomia_perciliata", "Peperomia_pereskifolia", "Peperomia_pernambucensis", "Peperomia_pitcairnensis", "Peperomia_ppucu_ppucu", "Peperomia_r_v_rotundifolia", "Peperomia_rhombea", "Peperomia_spec_Zaire_298N", "Peperomia_trifolia", "Peperomia_tuisana", "Peperomia_vinasiana", "Piper_aduncum_MAJ076", "Piper_aduncum_MAJ200", "Piper_arieanum", "Piper_augustum", "Piper_auritum", "Piper_bavinum", "Piper_caninum", "Piper_cinereum", "Piper_crocathum", "Piper_decuma", "Piper_flagelicuspe", "Piper_hispidum", "Piper_longum", "Piper_magnificum", "Piper_michelianum", "Piper_muncha", "Piper_nigrum", "Piper_ornatum", "Piper_peltatum", "Piper_penninerve", "Piper_pulchrum", "Piper_reticulatum_MAJ062", "Piper_reticulatum_MAJ128", "Piper_spoliatum", "Piper_subpedale", "Piper_woody", "Trianaeopiper_bullatum", "Trinaeopiper_conifertinodum", "Zippelia_begonieaflora", "Piper_margaritae", "Piper_bartlingianum")
-ingroup = clade(saururaceae, piperaceae, aristolochiaceae)
-allconstraints = v(saururaceae, piperaceae, aristolochiaceae, canellales)
-speciation_rate
-net_diversification_rate
-fbd_tree ~ dnConstrainedTopology(fbd_dist, constraints=v(ingroup))
-fbd_tree
-
+### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR PEPEROMIA\\
+# IMPORT DATA ==============
+stem = "bayes_nonclock"
+dir = "/home/junyinglim/Dropbox/Projects/2015/Peperomia"
+#data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/pep_160618/concatAlign_160618_clean.fasta")
+coding_dir = "/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/revbayes/coding/"
+noncoding_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/revbayes/noncoding/"
+codingFilenames = listFiles(coding_dir)
+noncodingFilenames = listFiles(noncoding_dir)
+n_coding <- codingFilenames.size()
+for (i in 1:n_coding) {
+    data[i] = readDiscreteCharacterData( codingFilenames[i] )
+}
+total_subsets = codingFilenames.size()+noncodingFilenames.size()index = codingFilenames.size()+1:total_subsetsn_noncoding <- noncodingFilenames.size()for (j in 1:n_noncoding) {    i <- index[j]    data[i] = readDiscreteCharacterData( noncodingFilenames[j] )}n_species <- data[1].ntaxa()n_branches <- 2 * n_species - 3taxa <- data[1].taxa()mvi = 0mni = 0#excludedSpecimens = ["PEZ-231_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-237_bwa", "PEZ-244_bwa", "PEZ-245_bwa"]## DEFINE SUBSTITUTION MODEL ==============for (i in 1:total_subsets) {    # exchangeability rates for partition i    er_prior[i] <- v(1,1,1,1,1,1)    er[i] ~ dnDirichlet(er_prior[i])    moves[++mvi] = mvSimplexElementScale(er[i], alpha=10, tune=true, weight=3)     # stationary frequencies for partition i    pi_prior[i] <- v(1,1,1,1)    pi[i] ~ dnDirichlet(pi_prior[i])    moves[++mvi] = mvSimplexElementScale(pi[i], alpha=10, tune=true, weight=2)     # rate matrix for partition i    Q[i] := fnGTR(er[i], pi[i]) 
+    # +Gamma for partition i
+    alpha_prior_mean[i] <- ln(2.0)
+    alpha_prior_sd[i] <- 0.587405
+    alpha[i] ~ dnLognormal( alpha_prior_mean[i], alpha_prior_sd[i] )
+    gamma_rates[i] := fnDiscretizeGamma( alpha[i], alpha[i], 4, false )
+    moves[++mvi] = mvScale(alpha[i], tune = true, weight = 1.0)
+}
+    # the probability of a site being invariable
+    # pinvar[i] ~ dnBeta(1,1)
+    # moves[++mvi] = mvScale(pinvar[i], lambda=0.1, tune=true, weight=2.0)
+    # moves[++mvi] = mvSlide(pinvar[i], delta=0.1, tune=true, weight=2.0)
+# Define partition-specific rate multipliers
+part_rate_mult ~ dnDirichlet( rep(1.0, total_subsets) )
+moves[++mvi] = mvBetaSimplex(part_rate_mult, alpha=1.0, tune=true, weight = total_subsets)
+moves[++mvi] = mvDirichletSimplex(part_rate_mult, alpha=1.0, tune=true, weight = 2.0)
+part_rate := part_rate_mult * total_subsets
+## DEFINE TREEMODEL ==============
+# Tree topology prior
+outgroup = clade("Piper_kadsura", "PEZ-247_bwa", "PEZ-204_bwa", "PEZ-164_bwa")
+topology ~ dnUniformTopology(taxa, outgroup = outgroup) # not assuming an outgroup
+moves[++mvi] = mvNNI(topology, weight=5.0)
+moves[++mvi] = mvSPR(topology, weight=5.0)
+# Branch length prior
+for (i in 1:n_branches) {
+    bl[i] ~ dnExponential(10.0)
+    moves[++mvi] = mvScale(bl[i], lambda = 10, tune = true, weight = 4.0)
+}
+TL := sum(bl)
+psi := treeAssembly(topology, bl)
+## GENERATE MODEL ==============
+for(i in 1:total_subsets){
+    phyloSeq[i] ~ dnPhyloCTMC(tree=psi, Q=Q[i], branchRates=part_rate[i], siteRates=gamma_rates[i], type="DNA")
+    phyloSeq[i].clamp(data[i])
+}
+## ANAYSIS ==============
+print("Initialize model ...")
+mymodel = model(psi)
+# add monitors
+monitors[++mni] = mnModel(filename=stem+".log",printgen=10)
+monitors[++mni] = mnFile(psi, filename=stem+".trees", printgen=10)
+monitors[++mni] = mnScreen(TL, printgen=100)
+#monitors[++mni] = mnScreen(TL, printgen=100)
+mymcmc = mcmc(mymodel, moves, monitors, nruns = 1) #), nchains = 4) # perhaps try out a mcmcmc with multiple chains?
+mymcmc = mcmc(mymodel, moves, monitors, nruns = 1)
+mymodel = model(psi)
+psi := treeAssembly(topology, bl)
+topology
+### ANALYZE MULTIPLEXED AMPLICON SEQUENCING DATA FOR PEPEROMIA\\
+# IMPORT DATA ==============
+stem = "bayes_nonclock"
+dir = "/home/junyinglim/Dropbox/Projects/2015/Peperomia"
+#data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/pep_160618/concatAlign_160618_clean.fasta")
+coding_dir = "/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/revbayes/coding/"
+noncoding_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/revbayes/noncoding/"
+codingFilenames = listFiles(coding_dir)
+noncodingFilenames = listFiles(noncoding_dir)
+n_coding <- codingFilenames.size()
+for (i in 1:n_coding) {
+    data[i] = readDiscreteCharacterData( codingFilenames[i] )
+}
+total_subsets = codingFilenames.size()+noncodingFilenames.size()index = codingFilenames.size()+1:total_subsetsn_noncoding <- noncodingFilenames.size()for (j in 1:n_noncoding) {    i <- index[j]    data[i] = readDiscreteCharacterData( noncodingFilenames[j] )}n_species <- data[1].ntaxa()n_branches <- 2 * n_species - 3taxa <- data[1].taxa()mvi = 0mni = 0#excludedSpecimens = ["PEZ-231_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-237_bwa", "PEZ-244_bwa", "PEZ-245_bwa"]## DEFINE SUBSTITUTION MODEL ==============for (i in 1:total_subsets) {    # exchangeability rates for partition i    er_prior[i] <- v(1,1,1,1,1,1)    er[i] ~ dnDirichlet(er_prior[i])    moves[++mvi] = mvSimplexElementScale(er[i], alpha=10, tune=true, weight=3)     # stationary frequencies for partition i    pi_prior[i] <- v(1,1,1,1)    pi[i] ~ dnDirichlet(pi_prior[i])    moves[++mvi] = mvSimplexElementScale(pi[i], alpha=10, tune=true, weight=2)     # rate matrix for partition i    Q[i] := fnGTR(er[i], pi[i]) 
+    # +Gamma for partition i
+    alpha_prior_mean[i] <- ln(2.0)
+    alpha_prior_sd[i] <- 0.587405
+    alpha[i] ~ dnLognormal( alpha_prior_mean[i], alpha_prior_sd[i] )
+    gamma_rates[i] := fnDiscretizeGamma( alpha[i], alpha[i], 4, false )
+    moves[++mvi] = mvScale(alpha[i], tune = true, weight = 1.0)
+}
+    # the probability of a site being invariable
+    # pinvar[i] ~ dnBeta(1,1)
+    # moves[++mvi] = mvScale(pinvar[i], lambda=0.1, tune=true, weight=2.0)
+    # moves[++mvi] = mvSlide(pinvar[i], delta=0.1, tune=true, weight=2.0)
+# Define partition-specific rate multipliers
+part_rate_mult ~ dnDirichlet( rep(1.0, total_subsets) )
+moves[++mvi] = mvBetaSimplex(part_rate_mult, alpha=1.0, tune=true, weight = total_subsets)
+moves[++mvi] = mvDirichletSimplex(part_rate_mult, alpha=1.0, tune=true, weight = 2.0)
+part_rate := part_rate_mult * total_subsets
+## DEFINE TREEMODEL ==============
+# Tree topology prior
+outgroup = clade("Piper_kadsura", "PEZ-247_bwa", "PEZ-204_bwa", "PEZ-164_bwa")
+topology ~ dnUniformTopology(taxa, outgroup = outgroup) # not assuming an outgroup
+moves[++mvi] = mvNNI(topology, weight=5.0)
+moves[++mvi] = mvSPR(topology, weight=5.0)
+taxa
+taxa <- data[1].taxa()
+taxa

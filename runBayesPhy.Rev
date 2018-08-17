@@ -2,65 +2,99 @@
 
 # IMPORT DATA ==============
 stem = "bayes_nonclock"
-dir = "/home/junyinglim/Dropbox/Projects/2015/Peper"
 dir = "/home/junyinglim/Dropbox/Projects/2015/Peperomia"
-data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/pep_160618/concatAlign_160618_clean.fasta")
+#data = readDiscreteCharacterData("/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/pep_160618/concatAlign_160618_clean.fasta")
 
+coding_dir = "/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/revbayes/coding/"
+noncoding_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/revbayes/noncoding/"
 
-#n_species <- data[1].ntaxa()
-n_species <- data.ntaxa()
+codingFilenames = listFiles(coding_dir)
+noncodingFilenames = listFiles(noncoding_dir)
+
+n_coding <- codingFilenames.size()
+for (i in 1:n_coding) {
+    data[i] = readDiscreteCharacterData( codingFilenames[i] )
+}
+
+total_subsets = codingFilenames.size()+noncodingFilenames.size()
+index = codingFilenames.size()+1:total_subsets
+n_noncoding <- noncodingFilenames.size()
+
+for (j in 1:n_noncoding) {
+    i <- index[j]
+    data[i] = readDiscreteCharacterData( noncodingFilenames[j] )
+}
+
+n_species <- data[1].ntaxa()
 n_branches <- 2 * n_species - 3
-taxa <- data.taxa()
+taxa <- data[1].taxa()
 
 mvi = 0
 mni = 0
 
+
+#excludedSpecimens = ["PEZ-231_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-237_bwa", "PEZ-244_bwa", "PEZ-245_bwa"]
+
+
 ## DEFINE SUBSTITUTION MODEL ==============
-# Exchangeability rates
-er_prior <- v(1,1,1,1,1,1)
-er ~ dnDirichlet(er_prior)
-moves[++mvi] = mvSimplexElementScale(er, alpha=10, tune=true, weight=3.0) 
 
-# Stationary frequencies
-pi_prior <- v(1,1,1,1)
-pi ~ dnDirichlet(pi_prior)
-moves[++mvi] = mvSimplexElementScale(pi, alpha = 10, tune=true, weight=2.0)
+for (i in 1:total_subsets) {
 
-Q := fnGTR(er, pi)
+    # exchangeability rates for partition i
+    er_prior[i] <- v(1,1,1,1,1,1)
+    er[i] ~ dnDirichlet(er_prior[i])
+    moves[++mvi] = mvSimplexElementScale(er[i], alpha=10, tune=true, weight=1.0) 
 
-# Gamma parameter
-alpha_prior_mean <- ln(2.0)
-alpha_prior_sd <- 0.587405
-alpha ~ dnLognormal(alpha_prior_mean, alpha_prior_sd)
-gamma_rates := fnDiscretizeGamma(alpha, alpha, 4, false)
+    # stationary frequencies for partition i
+    pi_prior[i] <- v(1,1,1,1)
+    pi[i] ~ dnDirichlet(pi_prior[i])
+    moves[++mvi] = mvSimplexElementScale(pi[i], alpha=10, tune=true, weight=1.0)
 
-moves[++mvi] = mvScale(alpha, tune = true, weight = 1.0)
+    # rate matrix for partition i
+    Q[i] := fnGTR(er[i], pi[i]) 
+
+    # +Gamma for partition i
+    alpha_prior_mean[i] <- ln(2.0)
+    alpha_prior_sd[i] <- 0.587405
+    alpha[i] ~ dnLognormal( alpha_prior_mean[i], alpha_prior_sd[i] )
+    gamma_rates[i] := fnDiscretizeGamma( alpha[i], alpha[i], 4, false )
+    moves[++mvi] = mvScale(alpha[i], tune = true, weight = 1.0)
+
+}
+    # the probability of a site being invariable
+    # pinvar[i] ~ dnBeta(1,1)
+    # moves[++mvi] = mvScale(pinvar[i], lambda=0.1, tune=true, weight=2.0)
+    # moves[++mvi] = mvSlide(pinvar[i], delta=0.1, tune=true, weight=2.0)
+
+# Define partition-specific rate multipliers
+part_rate_mult ~ dnDirichlet( rep(1.0, total_subsets) )
+moves[++mvi] = mvBetaSimplex(part_rate_mult, alpha=1.0, tune=true, weight = total_subsets)
+moves[++mvi] = mvDirichletSimplex(part_rate_mult, alpha=1.0, tune=true, weight = 1.0)
+part_rate := part_rate_mult * total_subsets
+
 
 ## DEFINE TREEMODEL ==============
 # Tree topology prior
-topology ~ dnUniformTopology(taxa) # not assuming an outgroup
+outgroup = clade("Piper_kadsura", "PEZ-247_bwa", "PEZ-204_bwa", "PEZ-164_bwa")
+topology ~ dnUniformTopology(taxa, outgroup = outgroup) # not assuming an outgroup
+
 moves[++mvi] = mvNNI(topology, weight=5.0)
 moves[++mvi] = mvSPR(topology, weight=5.0)
 
 # Branch length prior
 for (i in 1:n_branches) {
     bl[i] ~ dnExponential(10.0)
-    moves[++mvi] = mvScale(bl[i], lambda = 10, tune = true, weight = 4.0)
+    moves[++mvi] = mvScale(bl[i], lambda = 10, tune = true, weight = 2.0)
 }
-
-# Invariant sites
-pinvar ~ dnBeta(1,1)
-moves[++mvi] = mvScale(pinvar, lambda=0.1, tune=false, weight=2.0)
-moves[++mvi] = mvSlide(pinvar, delta=10.0, tune=false, weight=2.0)
 
 TL := sum(bl)
 psi := treeAssembly(topology, bl)
 
 ## GENERATE MODEL ==============
-phyloSeq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=gamma_rates, pInv=pinvar, type="DNA") 
-#phyloSeq.clamp(concat)
-phyloSeq.clamp(data)
-
+for(i in 1:total_subsets){
+    phyloSeq[i] ~ dnPhyloCTMC(tree=psi, Q=Q[i], branchRates=part_rate[i], siteRates=gamma_rates[i], type="DNA")
+    phyloSeq[i].clamp(data[i])
+}
 
 ## ANAYSIS ==============
 print("Initialize model ...")
@@ -68,14 +102,14 @@ mymodel = model(psi)
 
 # add monitors
 monitors[++mni] = mnModel(filename=stem+".log",printgen=10)
-monitors[++mni] = mnFile(psi, filename=stem+".trees", printgen=100)
+monitors[++mni] = mnFile(psi, filename=stem+".trees", printgen=10)
 monitors[++mni] = mnScreen(TL, printgen=100)
-#monitors[++mni] = mnScreen(TL, printgen=100)
 
 # run the analysis
-mymcmc = mcmc(mymodel, moves, monitors, nruns = 4) #), nchains = 4) # perhaps try out a mcmcmc with multiple chains?
-mymcmc.burnin(7500, tuningInterval = 250) #, tuningInterval = 200
-mymcmc.run(5000)
+print("Running analysis ...")
+mymcmc = mcmc(mymodel, moves, monitors, nruns = 1)
+#mymcmc.burnin(15000, tuningInterval = 100)
+mymcmc.run(15000)
 
 # summarize output
 treetrace = readTreeTrace(stem+"_gene.trees", treetype="non-clock")
