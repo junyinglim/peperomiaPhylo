@@ -8,7 +8,10 @@ library(grid)
 ## DIRECTORIES ============
 data.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/data"
 main.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/"
-phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/iqtree-CIPRES_170818" # IQ-TREE run fully partitioned, all 165 protein-coding and non-coding regions
+#phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/iqtree-CIPRES_170818"
+
+phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/iqtree_trim_230818"
+# IQ-TREE run fully partitioned, all 165 protein-coding and non-coding regions
 
 ## IMPORT FILES ============
 # Import tree
@@ -31,12 +34,12 @@ accessionData$Species[nrow(accessionData)] <- "kadsura"
 accessionData$Genus[accessionData$tiplabel == "PEZ-247"]  <- "Piper" # Small fix to genus determination
 
 # Create new, tip labels for display
-accessionData$newtiplabel <- paste(accessionData$Genus, accessionData$Species, accessionData$Geography)
+accessionData$newtiplabel <- paste(accessionData$Genus, accessionData$Species, accessionData$Geography, accessionData$SampleID)
 rownames(accessionData) <- accessionData$label
 
 # Small fixes
-accessionData$newtiplabel[accessionData$newtiplabel == "Piper kadsura NA"] <- "Piper kadsura"
-accessionData$newtiplabel[accessionData$tiplabel == "PEZ-180"] <- "Peperomia sp. C Amer" 
+accessionData$newtiplabel[accessionData$newtiplabel == "Piper kadsura NA NA"] <- "Piper kadsura"
+accessionData$newtiplabel[accessionData$tiplabel == "PEZ-180"] <- "Peperomia sp. C Amer PEZ-180"
 
 # Define higher geography categories
 accessionData$HigherGeography <- NA
@@ -68,7 +71,7 @@ pepIQTREE_rooted$tip.label[pepIQTREE_rooted$tip.label == "PEZ-298"] <- "PEZ-294"
 pepIQTREE_rooted$tip.label[pepIQTREE_rooted$tip.label == "filler"] <- "PEZ-298" #"PEZ-298_Peperomia_adamsonii_Marquesas"
 
 # Drop a labelling error (perhaps leave as is?)
-pepIQTREE_rooted <- drop.tip(pepIQTREE_rooted, tip = "PEZ-211_Peperomia_membranacea_Hawaii")
+#pepIQTREE_rooted <- drop.tip(pepIQTREE_rooted, tip = "PEZ-211_Peperomia_membranacea_Hawaii")
 
 ## PLOT PHYLOGENY ===============
 
@@ -97,3 +100,16 @@ phyloSupport <- ggtree(pepIQTREE_rooted, size = 0.2, ladderize = TRUE) %<+%
   theme(panel.background = element_rect(fill = "transparent"))
 
 ggsave(phyloSupport, width = 18, height = 12, filename = file.path(phylo.dir, "pepPhylo_support.pdf"), device = cairo_pdf)
+
+
+
+pepIQTREE_rooted_trunc <- drop.tip(pepIQTREE_rooted, tip = c("PEZ-247", "PEZ-164", "PEZ-204", "Piper_kadsura"))
+phyloSupportTrunc <- ggtree(pepIQTREE_rooted_trunc, size = 0.2, ladderize = TRUE) %<+%
+  accessionData[c("tiplabel","newtiplabel", "HigherGeography")] +
+  geom_nodelab(size = 1) +
+  geom_tiplab(aes(label=newtiplabel, color = HigherGeography), size = 1.5) +
+  #xlim(0, 0.045) +
+  scale_color_manual(values = colBiogeog) +
+  geom_treescale(x = 0, y = 0, offset = -2) +
+  theme(panel.background = element_rect(fill = "transparent"))
+ggsave(phyloSupportTrunc, width = 18, height = 12, filename = file.path(phylo.dir, "pepPhylo_supportTrunc.pdf"), device = cairo_pdf)

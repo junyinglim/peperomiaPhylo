@@ -9,13 +9,28 @@ import os
 from seqTools import genPartition, concatenate # custom functions
 
 from Bio.AlignIO import PhylipIO
-#Bio.AlignIO.PhylipIO._PHYLIP_ID_WIDTH=30
+import subprocess
+
+
+import datetime
+
+now = datetime.datetime.now()
+stem = now.strftime("%Y-%m-%d")
 
 # Directories for local --------------------
-coding_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/bwa_alignments/coding"
-noncoding_dir ="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/bwa_alignments/noncoding"
+align_dir = "/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/bwa_alignments/"
+coding_dir = os.path.join(align_dir, "coding")
+noncoding_dir =os.path.join(align_dir, "noncoding")
+
+coding_trim_dir = os.path.join(align_dir, "coding_trim")
+noncoding_trim_dir = os.path.join(align_dir, "noncoding_trim")
 
 concat_dir = "/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data"
+
+sed = "/usr/bin/sed"
+trimal = "/Users/junyinglim/Dropbox/Projects/Programs/trimAl-v1.4/source/trimal"
+
+
 
 # Import locus alignments --------------------
 codingfastas=[file for file in os.listdir(coding_dir) if file.endswith(".fasta")]
@@ -30,22 +45,23 @@ noncodingexclude = ["atpA-atpF_align.fasta", "atpF-atpH_align.fasta", "ccsA-trnL
 					"trnE-trnT_align.fasta", "trnN-ycf1_align.fasta", "ycf1-rps15_align.fasta"]
 noncodingfastas=[fasta for fasta in noncodingfastas if fasta not in noncodingexclude]
 
+
 codingAlignments=[AlignIO.read(os.path.join(coding_dir, fasta), "fasta") for fasta in codingfastas]
 noncodingAlignments=[AlignIO.read(os.path.join(noncoding_dir, fasta), "fasta") for fasta in noncodingfastas]
 bothAlignments = codingAlignments + noncodingAlignments
 
-genPartition(codingAlignments, filename = os.path.join(concat_dir, "coding_partition_180718.txt"))
-genPartition(noncodingAlignments, filename = os.path.join(concat_dir, "noncoding_partition_180718.txt"))
-genPartition(bothAlignments, filename = os.path.join(concat_dir, "both_partition_180718.txt"))
+genPartition(codingAlignments,
+	filename = os.path.join(concat_dir, "coding_partition_" + stem + ".txt"))
+genPartition(noncodingAlignments,
+	filename = os.path.join(concat_dir, "noncoding_partition_" + stem + ".txt"))
+genPartition(bothAlignments,
+	filename = os.path.join(concat_dir, "both_partition_" + stem + ".txt"))
+
 
 # Concatenate locus alignments -------------------- 
 concatenatedAlignment_coding = concatenate(codingAlignments)
 concatenatedAlignment_noncoding = concatenate(noncodingAlignments)
 concatenatedAlignment_both = concatenate(bothAlignments)
-# excludedSpecimens = ["PEZ-217_bwa",
-# 		"PEZ-231_bwa", "PEZ-232_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-236_bwa",
-# 		"PEZ-237_bwa", "PEZ-238_bwa", "PEZ-239_bwa", "PEZ-241_bwa", "PEZ-242_bwa", "PEZ-243_bwa",
-# 		"PEZ-244_bwa", "PEZ-245_bwa"]
 
 excludedSpecimens = ["PEZ-231_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-237_bwa", "PEZ-244_bwa", "PEZ-245_bwa"]
 # 231,233,234,244, 245 = no more living collection
@@ -62,10 +78,83 @@ concatenatedAlignment_noncoding_subset = MultipleSeqAlignment(concatenatedAlignm
 
 concatenatedAlignment_both_subset = MultipleSeqAlignment(concatenatedAlignment_both_subset)
 
-AlignIO.write(concatenatedAlignment_coding_subset, os.path.join(concat_dir, "codingConcat_180718.phy"), "phylip-relaxed")
-AlignIO.write(concatenatedAlignment_noncoding_subset, os.path.join(concat_dir, "noncodingConcat_180718.phy"), "phylip-relaxed")
+AlignIO.write(concatenatedAlignment_coding_subset,
+	os.path.join(concat_dir, "codingConcat_"+stem+".phy"), "phylip-relaxed")
+AlignIO.write(concatenatedAlignment_noncoding_subset,
+	os.path.join(concat_dir, "noncodingConcat_"+stem+".phy"), "phylip-relaxed")
+AlignIO.write(concatenatedAlignment_both_subset,
+	os.path.join(concat_dir, "bothConcat_"+stem+".phy"), "phylip-relaxed")
 
-AlignIO.write(concatenatedAlignment_both_subset, os.path.join(concat_dir, "bothConcat_180718.phy"), "phylip-relaxed")
+
+# Triming using Trimal --------------------
+[subprocess.Popen( [sed, "s/n/-/g", os.path.join(coding_dir, fasta)], stdout=open(os.path.join(coding_trim_dir, fasta), "w") ) for fasta in codingfastas]
+
+[subprocess.Popen( [sed, "s/n/-/g", os.path.join(noncoding_dir, fasta)], stdout=open(os.path.join(noncoding_trim_dir, fasta), "w") ) for fasta in noncodingfastas]
+
+
+[subprocess.Popen( [trimal, "-in", os.path.join(coding_trim_dir, fasta), "-out", os.path.join(coding_trim_dir, fasta), "-gappyout", "-fasta"] ) for fasta in codingfastas]
+[subprocess.Popen( [trimal, "-in", os.path.join(noncoding_trim_dir, fasta), "-out", os.path.join(noncoding_trim_dir, fasta), "-gappyout", "-fasta"] ) for fasta in noncodingfastas]
+
+codingTrimAlignments=[AlignIO.read(os.path.join(coding_trim_dir, fasta), "fasta") for fasta in codingfastas]
+noncodingTrimAlignments=[AlignIO.read(os.path.join(noncoding_trim_dir, fasta), "fasta") for fasta in noncodingfastas]
+bothTrimAlignments = codingTrimAlignments + noncodingTrimAlignments
+
+genPartition(codingTrimAlignments,
+	filename = os.path.join(concat_dir, "coding_trim_partition_" + stem + ".txt"))
+genPartition(noncodingTrimAlignments,
+	filename = os.path.join(concat_dir, "noncoding_trim_partition_" + stem + ".txt"))
+genPartition(bothTrimAlignments,
+	filename = os.path.join(concat_dir, "both_trim_partition_" + stem + ".txt"))
+
+
+
+# Concatenate trimmed alignments --------------------
+concatenatedTrimAlignment_coding = concatenate(codingTrimAlignments)
+concatenatedTrimAlignment_noncoding = concatenate(noncodingTrimAlignments)
+concatenatedTrimAlignment_both = concatenate(bothTrimAlignments)
+
+removeSpecimens = ["PEZ-231_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-237_bwa", "PEZ-244_bwa", "PEZ-245_bwa"]
+
+lowCoverageSpecimens = ["PEZ-251_bwa", "PEZ-250_bwa", "PEZ-209_bwa",
+						"JYL-59_bwa", "PEZ-194_bwa", "PEZ-193_bwa",
+						"PEZ-168_bwa"]
+# <15x mean and median coverage
+# 194 = kipahuluensis (no redund. for Kauai population)
+# 193
+
+# based on the ambiguity and gap trimmed alignment (and excluding the Pipers)
+nonhomogeneousSpecimens = ["JYL-59_bwa", "PEZ-202_bwa",
+						   "PEZ-205_bwa", "PEZ-209_bwa",
+						   "PEZ-210_bwa"]
+
+# JYL-59, (PEZ-164), PEZ-202, (204), 205, 209, 210, (247), (Piper_kadsura) [piper taxa in parentheses]
+#205 = hirtipetiola (some redund.), 202 = expallescens (no redund.), 59 = macraeana (multiple redundancies)
+
+excludedSpecimens = list(set().union(removeSpecimens,lowCoverageSpecimens, nonhomogeneousSpecimens))
+
+
+
+concatenatedTrimAlignment_coding_subset = [record for record in concatenatedTrimAlignment_coding if record.id not in excludedSpecimens]
+concatenatedTrimAlignment_noncoding_subset = [record for record in concatenatedTrimAlignment_noncoding if record.id not in excludedSpecimens]
+concatenatedTrimAlignment_both_subset = [record for record in concatenatedTrimAlignment_both if record.id not in excludedSpecimens]
+
+concatenatedTrimAlignment_coding_subset = MultipleSeqAlignment(concatenatedTrimAlignment_coding_subset)
+
+concatenatedTrimAlignment_noncoding = MultipleSeqAlignment(concatenatedTrimAlignment_noncoding)
+
+concatenatedTrimAlignment_both_subset = MultipleSeqAlignment(concatenatedTrimAlignment_both_subset)
+
+AlignIO.write(concatenatedTrimAlignment_coding_subset,
+	os.path.join(concat_dir, "codingTrim_"+stem+".phy"), "phylip-relaxed")
+
+AlignIO.write(concatenatedTrimAlignment_noncoding,
+	os.path.join(concat_dir, "noncodingTrim_"+stem+".phy"), "phylip-relaxed")
+
+AlignIO.write(concatenatedTrimAlignment_both_subset,
+	os.path.join(concat_dir, "bothTrim_"+stem+".phy"), "phylip-relaxed")
+
+
+
 
 #alignmentList = [record for record in concatenatedAlignment if record.id in ["PEZ-179_bwa",]]
 
