@@ -1,7 +1,7 @@
 ## IMPORT DATA ========================
-#dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
+dir="/Users/junyinglim/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
 #dir="/Users/Marshall_Lab/Dropbox/Projects/2015/Peperomia/data/fossilBD/"
-dir = "data/"
+#dir = "data/"
 data = readDiscreteCharacterData(dir+"wanke2007_clean.nex")
 taxa = readTaxonData(filename=dir+"piperales_taxa.tsv")
 n_species <- taxa.size()
@@ -137,9 +137,12 @@ age_piperaceae := tmrca(fbd_tree, piperaceae)
 
 # Clock model
 num_rate_categories = 10
-ucln_mean ~ dnUniform(1E-6, 10)
-ucln_log_mean := ln( ucln_mean )
-ucln_sigma <- 1 #~ dnExponential(10.0)
+ucln_mean ~ dnExponential(2.0)
+ucln_sigma ~ dnExponential(3.0)
+ucln_var := ucln_sigma * ucln_sigma
+ucln_mu := ln(ucln_mean) - (ucln_var * 0.5)
+
+#~ dnExponential(10.0)
 # rate_categories := fnDiscretizeDistribution( dnLognormal( ucln_log_mean, ucln_sigma ), num_rate_categories)
 # rate_probs <- simplex(rep(1, num_rate_categories))
 
@@ -152,12 +155,13 @@ ucln_sigma <- 1 #~ dnExponential(10.0)
 # }
 
 ## Non-discretized lognormal
-moves[mvi++] = mvSlide(ucln_mean, delta = 3, weight = 5.0, tune = true)
-moves[mvi++] = mvScale(ucln_mean, lambda = 3, weight = 5.0, tune = true)
+#moves[mvi++] = mvSlide(ucln_mean, delta = 3, weight = 5.0, tune = true)
+moves[mvi++] = mvScale(ucln_sigma, lambda = 3, weight = 4.0, tune = true)
+moves[mvi++] = mvScale(ucln_mean, lambda = 3, weight = 4.0, tune = true)
 
 for(j in 1:n_branches){
-    branch_rates[j] ~ dnLognormal( ucln_log_mean, ucln_sigma )
-    moves[mvi++] = mvScale( branch_rates[j], weight = 3.0, tune = true )
+    branch_rates[j] ~ dnLnorm( ucln_mu, ucln_sigma )
+    moves[mvi++] = mvScale( branch_rates[j], weight = 2.0, tune = true )
 }
 
 
@@ -176,7 +180,7 @@ monitors[mni++] = mnFile(fbd_tree, filename= dir + "fbd.trees", printgen=10)
 monitors[mni++] = mnScreen(age_piperaceae, printgen=10)
 
 ## RUN ANALYSIS
-mymcmc = mcmc(mymodel, moves, monitors, nruns = 2)
+mymcmc = mcmc(mymodel, moves, monitors, nruns = 10)
 mymcmc.burnin(25000, tuningInterval = 100)
 mymcmc.run(50000)#, underPrior = true)
 

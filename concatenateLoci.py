@@ -115,23 +115,23 @@ concatenatedTrimAlignment_both = concatenate(bothTrimAlignments)
 
 removeSpecimens = ["PEZ-231_bwa", "PEZ-233_bwa", "PEZ-234_bwa", "PEZ-235_bwa", "PEZ-237_bwa", "PEZ-244_bwa", "PEZ-245_bwa"]
 
-lowCoverageSpecimens = ["PEZ-251_bwa", "PEZ-250_bwa", "PEZ-209_bwa",
-						"JYL-59_bwa", "PEZ-194_bwa", "PEZ-193_bwa",
-						"PEZ-168_bwa"]
+# lowCoverageSpecimens = ["PEZ-251_bwa", "PEZ-250_bwa", "PEZ-209_bwa",
+# 						"JYL-59_bwa", "PEZ-194_bwa", "PEZ-193_bwa",
+# 						"PEZ-168_bwa"]
 # <15x mean and median coverage
 # 194 = kipahuluensis (no redund. for Kauai population)
 # 193
 
 # based on the ambiguity and gap trimmed alignment (and excluding the Pipers)
-nonhomogeneousSpecimens = ["JYL-59_bwa", "PEZ-202_bwa",
-						   "PEZ-205_bwa", "PEZ-209_bwa",
-						   "PEZ-210_bwa"]
+# nonhomogeneousSpecimens = ["JYL-59_bwa", "PEZ-202_bwa",
+# 						   "PEZ-205_bwa", "PEZ-209_bwa",
+# 						   "PEZ-210_bwa"]
 
 # JYL-59, (PEZ-164), PEZ-202, (204), 205, 209, 210, (247), (Piper_kadsura) [piper taxa in parentheses]
 #205 = hirtipetiola (some redund.), 202 = expallescens (no redund.), 59 = macraeana (multiple redundancies)
 
-excludedSpecimens = list(set().union(removeSpecimens,lowCoverageSpecimens, nonhomogeneousSpecimens))
-
+#excludedSpecimens = list(set().union(removeSpecimens,lowCoverageSpecimens, nonhomogeneousSpecimens))
+excludedSpecimens = removeSpecimens
 
 
 concatenatedTrimAlignment_coding_subset = [record for record in concatenatedTrimAlignment_coding if record.id not in excludedSpecimens]
@@ -153,6 +153,7 @@ AlignIO.write(concatenatedTrimAlignment_noncoding,
 AlignIO.write(concatenatedTrimAlignment_both_subset,
 	os.path.join(concat_dir, "bothTrim_"+stem+".phy"), "phylip-relaxed")
 
+subprocess.Popen( [trimal, "-in", os.path.join(concat_dir, "bothTrim_"+stem+".phy"), "-out", os.path.join(concat_dir, "bothTrim_"+stem+".nex"), "-nexus"] )
 
 
 

@@ -8,16 +8,17 @@ library(grid)
 ## DIRECTORIES ============
 data.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/data"
 main.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/"
-#phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/iqtree-CIPRES_170818"
-
-phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/iqtree_trim_230818"
+phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/2018-09-04/iqtree/"
 # IQ-TREE run fully partitioned, all 165 protein-coding and non-coding regions
+
+phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/2018-09-04/raxml/"
 
 ## IMPORT FILES ============
 # Import tree
 pepIQTREE_rooted <- read.nexus(file.path(phylo.dir, "output.treefile_rooted"))
 # NOTE: original file needs to be opened in figtree, rooted manually, saved as a nexus file, and the square brackets removed by regular expr.
 # WHY THE TROUBLE? midpoint function makes mistakes when renaming nodes
+pepIQTREE_rooted <- read.tree(file.path(phylo.dir, "RAxML_bipartitions.raxml_2018-09-04"))
 
 pepIQTREE_rooted$tip.label <- gsub(pepIQTREE_rooted$tip.label, pattern = "_bwa", replacement = "")
 
