@@ -11,7 +11,7 @@ main.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/"
 phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/2018-09-04/iqtree/"
 # IQ-TREE run fully partitioned, all 165 protein-coding and non-coding regions
 
-phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/2018-09-04/raxml/"
+#phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/2018-09-04/raxml/"
 
 ## IMPORT FILES ============
 # Import tree
@@ -90,10 +90,12 @@ colBiogeog <- c(col4, col7, col2, col1, col5, col8, col6, col3, "grey60")
 
 # Clean up node labels
 pepIQTREE_rooted$node.label <- gsub(pepIQTREE_rooted$node.label, pattern = "\"|\"", replacement = "")
+pepIQTREE_rooted$node.label <- str_split_fixed(pepIQTREE_rooted$node.label, pattern = "/", n = 2)[,2]
 
 phyloSupport <- ggtree(pepIQTREE_rooted, size = 0.2, ladderize = TRUE) %<+%
   accessionData[c("tiplabel","newtiplabel", "HigherGeography")] +
   geom_nodelab(size = 1) +
+  geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>80), color = "grey30", alpha = 0.5, size= 3) +
   geom_tiplab(aes(label=newtiplabel, color = HigherGeography), size = 1.5) +
   #xlim(0, 0.045) +
   scale_color_manual(values = colBiogeog) +
@@ -108,6 +110,7 @@ pepIQTREE_rooted_trunc <- drop.tip(pepIQTREE_rooted, tip = c("PEZ-247", "PEZ-164
 phyloSupportTrunc <- ggtree(pepIQTREE_rooted_trunc, size = 0.2, ladderize = TRUE) %<+%
   accessionData[c("tiplabel","newtiplabel", "HigherGeography")] +
   geom_nodelab(size = 1) +
+  geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>80), color = "grey30", alpha = 0.5, size= 3) +
   geom_tiplab(aes(label=newtiplabel, color = HigherGeography), size = 1.5) +
   #xlim(0, 0.045) +
   scale_color_manual(values = colBiogeog) +
