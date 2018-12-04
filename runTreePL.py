@@ -30,20 +30,22 @@ def generateTreePLconfig(x, iter):
 	max = "max = PIPERACEAE " + str(x)
 	cvoutfile = "cvoutfile = cv_" + str(iter) + ".out"
 	cv = "cv"
-	thorough = "thorough"
-	cvstart = "cvstart = 0.1"
-	cvstop = "cvstop = 1000"
-	lines = [treefile, outfile, numsites, mrca, min, max, cvoutfile, cv, thorough, cvstart, cvstop]
+	#thorough = "thorough"
+	cvstart = "cvstart = 0.01"
+	cvstop = "cvstop = 100"
+	lines = [treefile, outfile, numsites, mrca, min, max, cvoutfile, cv, cvstart, cvstop] #thorough, cvstart, cvstop]
 	with open(os.path.join(output_dir, "treePL.config"), 'w') as f:
 		f.write('\n'.join(lines))
 
 generateTreePLconfig(x = meanDivTime, iter = "mean")
-subprocess.Popen(["/usr/local/bin/treepl", os.path.join(output_dir, "treePL.config")])
+subprocess.check_call(["/usr/local/bin/treepl", os.path.join(output_dir, "treePL.config")])
 
-# for i in range(len(randomDivTime)): 
-# 	iter = i+1
-# 	generateTreePLconfig(x = randomDivTime[i], iter = iter)
-# 	subprocess.Popen(["/usr/local/bin/treepl", os.path.join(output_dir, "treePL.config")])
+for i in range(len(randomDivTime)): 
+	iter = i+1
+	generateTreePLconfig(x = randomDivTime[i], iter = iter)
+	subprocess.check_call(["/usr/local/bin/treepl", os.path.join(output_dir, "treePL.config")])
+
+print("TreePL runs complete!")
 
 
 ## FOSSIKLIZED BIRTH DEATH TREES
