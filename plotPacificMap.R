@@ -3,7 +3,7 @@
 
 ## DIRECTORIES ============================
 main.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/"
-
+fig.dir <- file.path(main.dir, "figures")
 ## PACKAGES ============================
 library(sp); library(rgdal)
 library(maps)
@@ -76,6 +76,6 @@ pacMap <- Recenter(150)
 # test <- SpatialLines2PolySet(pacMap)
 # test2 <- PolySet2SpatialPolygons(test, close_polys = TRUE)
 # test <- SpatialLinesDataFrame(pacMap, data=)
-pdf(width = 10, height = 5, file = "~/Desktop/testPac.pdf")
+pdf(width = 10, height = 5, file = file.path(fig.dir, "pacificMap.pdf"))
 plot(pacMap, col="grey40", lwd = 1) ## Centered on International Date Line
 dev.off()

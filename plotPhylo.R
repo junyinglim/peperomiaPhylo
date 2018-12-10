@@ -29,7 +29,7 @@ accessionData$Genus[nrow(accessionData)] <- "Piper"
 accessionData$Species[nrow(accessionData)] <- "kadsura"
 
 # Small fixes
-accessionData$Genus[accessionData$tiplabel == "PEZ-247_Peperomia_sp._New_Caledonia"]  <- "Piper"
+accessionData$Genus[accessionData$tiplabel == "PEZ-247"]  <- "Piper"
 accessionData$newtiplabel <- paste(accessionData$Genus, accessionData$Species, accessionData$Geography)
 rownames(accessionData) <- accessionData$label
 

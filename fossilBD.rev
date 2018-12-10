@@ -118,12 +118,14 @@ extinction_rate := speciation_rate * relative_extinction_rate
 
 # Fossil sampling rate
 #psi ~ dnExponential(1)
-
 psi_log ~ dnUniform(-10, 1)
 moves[mvi++] = mvSlide(psi_log, delta=0.5, weight=2.0, tune = true)
 psi := 10^psi_log
+psi_log.setValue(-3)
 
+print("Defining fossilized birth death process")
 fbd_dist = dnFBDP(rootAge = origin_time, lambda = speciation_rate, mu = extinction_rate, psi = psi, rho = rho, taxa = taxa)
+
 # NOTE: lambda and mu MUST be stochastic nodes (not deterministic ones)
 
 ## FOSSIL CONSTRAINTS ========================
@@ -198,7 +200,7 @@ stemAge_saururaceae := tmrca(fbd_tree, saururaceae, stemAge = true)
 
 # Add some correlated moves to help with fixing
 up_down_scale_index = mvi++
-moves[up_down_scale_index] = mvUpDownScale(weight=5.0)
+moves[up_down_scale_index] = mvUpDownScale(weight=10.0)
 moves[up_down_scale_index].addVariable(fbd_tree, up=true)
 moves[up_down_scale_index].addVariable(origin_time, up=true)
 moves[up_down_scale_index].addVariable(branch_rate_mean_log, up=false)
@@ -220,7 +222,7 @@ mymodel = model(seq)
 ## CREATE MONITORS
 monitors[mni++] = mnModel(filename="output/" + clock_model + ".log", printgen=10)
 monitors[mni++] = mnFile(fbd_tree, filename="output/"+ clock_model + ".trees", printgen=10)
-monitors[mni++] = mnScreen(printgen=100, speciation_rate, extinction_rate, psi, branch_rate_mean)
+monitors[mni++] = mnScreen(printgen=1, speciation_rate, extinction_rate, psi, branch_rate_mean)
 
 
 ## RUN ANALYSIS
