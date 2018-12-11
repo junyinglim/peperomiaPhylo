@@ -27,6 +27,7 @@ accessionData <- rbind(accessionData, rep(NA, ncol(accessionData)))
 accessionData$tiplabel[nrow(accessionData)] <- "Piper_kadsura"
 accessionData$Genus[nrow(accessionData)] <- "Piper"
 accessionData$Species[nrow(accessionData)] <- "kadsura"
+accessionData$Geography[nrow(accessionData)] <- ""
 
 # Small fixes
 accessionData$Genus[accessionData$tiplabel == "PEZ-247"]  <- "Piper"
@@ -83,11 +84,10 @@ treePLtrees_mean3@data$"height"=c(rep(NA,120), treePLtrees_brtimes_mean)
 
 treePLtrees_mean3@phylo$node.label <- (Ntip(treePLtrees_mean3)+1):(Ntip(treePLtrees_mean3)+Nnode(treePLtrees_mean3))
 
-
 test <- revts(ggtree(treePLtrees_mean3) +
   coord_cartesian(xlim = c(-80,0), ylim = c(-10, Ntip(treePLtrees_mean3)+2), expand = FALSE) +
-  geom_range(range = 'height_range', branch.length = "height", col = "navyblue", alpha = 0.5, size = 2) + #geom_nodelab() +
-#  geom_cladelabel(node = 130, label = "Hawaiian endemics A", offset = -1, angle = 90, ) +
+  geom_range(range = 'height_range', branch.length = "height", col = "navyblue", alpha = 0.5, size = 2) +
+  geom_nodelab(size = 2) +
   scale_x_continuous(breaks=seq(-80,0, 10), labels=abs(seq(-80,0,10)),name = "Millions of years (Ma)") +
   geom_vline(aes(xintercept = -66), alpha = 0.5, col = "grey30", linetype = "dashed") +
   geom_vline(aes(xintercept = -56), alpha = 0.5, col = "grey30", linetype = "dashed") +
@@ -100,7 +100,42 @@ test2 <- gggeo_scale(test, dat = "epochs", neg = TRUE, abbrv = TRUE, size = 2, l
 
 ggsave(test2, filename = file.path(fig.dir, "datedPepPhy.pdf"), device = cairo_pdf, width = 5, height = 5)
 
-# ggtree(treePLtrees_mean) + geom_segment2(aes(subset=!isTip, xend = c(rep(NA, 120), treePLtrees_brtimes_range[1,]), yend = c(rep(NA, 120), treePLtrees_brtimes_range[2,]))) + scale_x_reverse(breaks=seq(-50, 0, by = 10), labels=abs(seq(-50,0,by = 10)),expand = c(0,0),name = "Millions of years (Ma)")
+treePLtrees_mean3@data$height_range[130] # crown-age radiation A
+treePLtrees_mean3@data$height[130]
+
+treePLtrees_mean3@data$height_range[209] # crown-age radiation B
+treePLtrees_mean3@data$height[209]
+
+treePLtrees_mean3@data$height_range[129] # stem-age radiation A
+treePLtrees_mean3@data$height[129]
+
+treePLtrees_mean3@data$height_range[208] # stem-age radiation B
+treePLtrees_mean3@data$height[208]
+
+## Summarize fossilized birth-death trees
+#mapTree <- read.beast(file.path(output.dir, "ucln_map.tree"))
+mccTree <- read.beast(file.path(output.dir, "ucln_mcc.tree"))
+mccTree_extant <- treeio::drop.tip(mccTree, tip = c("Saururus_aquilae", "Saururus_tuckerae", "Saururus_bilobatus", "Saururus_stoobensis", "Houttuynia_bavarica", "Saururopsis_niponensis", "Hexagyne_philippiana", "Lactoripollenites_africanus", "Aristolochia_austriaca", "Piper_margaritae", "Piper_bartlingianum"))
+mccTree_extant@data$age <- c(rep(NA, Ntip(mccTree_extant)),branching.times(mccTree_extant@phylo))
+
+mccTreePlot <- revts(ggtree(mccTree_extant) + geom_tiplab(size = 2) + 
+                       coord_cartesian(xlim = c(-140,40), ylim = c(-10, Ntip(mccTree_extant)+2), expand = FALSE) + 
+        geom_range("age_0.95_HPD", branch.length = "age", color = "red", size = 1.8, alpha = 0.5) + #geom_nodelab() +
+      scale_x_continuous(breaks=seq(-140,0, 10), labels=abs(seq(-140,0,10)),name = "Millions of years (Ma)") +
+  theme_tree2() )
+
+mccTreePlot2 <- gggeo_scale(mccTreePlot, dat = "periods", neg = TRUE, abbrv = FALSE, size = 2)
+ggsave(mccTreePlot2, filename = file.path(fig.dir, "datedPiperales.pdf"), device = cairo_pdf, width = 7, height = 7)
+
+FBDlogFiles <- list.files(output.dir, pattern = "ucln_run_[0-9]{1,2}\\.log")
+FBDlogDF <- lapply(file.path(output.dir, FBDlogFiles), FUN = read.table, header = TRUE)
+FBDlogDF_burnin <- lapply(FBDlogDF, FUN = function(x){x[round(0.25*nrow(x)):nrow(x),]})
+FBDlogDF_total <- do.call("rbind",FBDlogDF_burnin)
+quantile(FBDlogDF_total$crownAge_pippep, probs = c(0.025, 0.975))
+mean(FBDlogDF_total$crownAge_pippep)
+
+mccTree@data$age_0.95_HPD[mccTree@data$node == 122]
+branching.times(mccTree@phylo)["122"]
 
 ## Plot phylogeny ==============
 # Import phylogeny -----------
@@ -149,59 +184,40 @@ ggsave(plotLegend, filename = file.path(output.dir, "biogeogLegend.pdf"), device
 
 # Plot phylogeny -----------
 # For this method to work, the FIRST column must be matched with the tip labels
+accessionData$binom <- paste(accessionData$Genus, accessionData$Species)
+accessionData$binom <- paste0("`", accessionData$binom, "`")
+accessionData$GeogNew <- paste0("`   ", accessionData$Geography, "`")
 phyloSupport <- ggtree(pepML, size = 0.2, ladderize = TRUE) %<+%
-  accessionData[c("tiplabel","newtiplabel", "HigherGeography")] +
+  accessionData[c("tiplabel","binom","Genus", "Species", "HigherGeography", "GeogNew")] +
   #geom_nodelab(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)<80), size = 1.5) +
   geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>80), color = "grey30", alpha = 0.5, size= 1.5) + # adds a dot for nodes > 80 bootstrap
   #geom_hilight(node = 214, fill = "grey90", extendto = 0.035) +
   #geom_hilight(node = 132, fill = "grey90", extendto = 0.035) +
-  geom_tiplab(aes(label=newtiplabel, color = HigherGeography), size = 1.5) +
+  geom_tiplab(aes(label=paste0("italic(",binom,")~", GeogNew), color = HigherGeography), size = 1.5, parse = TRUE) +
   xlim(0, 0.07) +
   #geom_cladehi(node = 214, label = "Hawaiian endemics A") +
   #geom_cladehi(node = 132, label = "Hawaiian endemics B") +
   scale_color_manual(values = colBiogeog) +
-  #geom_treescale(x = 0, y = 0, offset = -2) +
+  geom_treescale(x = 0, y = 0, offset = -2) +
   theme(panel.background = element_rect(fill = "transparent"))
 
 #phyloNode <- ggtree(pepRAXML_rooted, size = 0.2, ladderize = TRUE) + 
 #  geom_text2(aes(subset=!isTip, label=node), hjust=-.3, size = 1)
 
-#pepPhylogram <- arrangeGrob(phyloSupport, g_legend(testLegend), nrow = 1, ncol = 2, widths = c(8, 2)) 
-ggsave(phyloSupport, width = 8, height = 12, filename = file.path(fig.dir, "phylo_support.pdf"), device = cairo_pdf)
+ggsave(phyloSupport, width = 8, height = 12, filename = file.path(fig.dir, "phylo_support.pdf"))
 
-## PLOT THE DATED PHYLOGENY =======
-datedPhy <- read.tree(file.path(phylo.dir, "dated.tre"))
+## SUMMARY STATISTICS
+z <- subset(accessionData, tiplabel %in% pepML$tip.label) # 118 accessions (incl 3 outgroups)
+table(subset(accessionData, tiplabel %in% pepML$tip.label)$HigherGeography) # 97 accessions
 
-# Correct some labelling errors
-datedPhy$tip.label[datedPhy$tip.label == "PEZ-294_Peperomia_tetraphylla_Australia"] <- "filler"
-datedPhy$tip.label[datedPhy$tip.label == "PEZ-298_Peperomia_adamsonii_Marquesas"] <- "PEZ-294_Peperomia_tetraphylla_Australia"
-datedPhy$tip.label[datedPhy$tip.label == "filler"] <- "PEZ-298_Peperomia_adamsonii_Marquesas"
-
-datedPhy <- drop.tip(datedPhy, tip = "PEZ-211_Peperomia_membranacea_Hawaii")
-
-datedPhy <- rotateConstr(datedPhy, pepRAXML_rooted$tip.label) # ensure that tips are in the same order
-
-datedPepPhy <- drop.tip(datedPhy, tip = c("PEZ-204_Piper_ponapense_Micronesia", "PEZ-247_Peperomia_sp._New_Caledonia", "Piper_kadsura", "PEZ-164_Macropiper_puberulum_Samoa")) #remove piper from tree
-
-datedPlot <- ggtree(datedPepPhy, size = 0.2) +
-  theme_tree2()
-
-# datedPlot2 <- revts(datedPlot) + scale_x_continuous(breaks=seq(-50, 0, by = 10),
-#                                                    labels=abs(seq(-50,0, by = 10)),
-#                                                    limits = c(-55,0),
-#                                                    expand = c(0,0) 
-#                                                   )
-
-datedPlot2 <- revts(datedPlot) + scale_x_reverse(breaks=seq(-50, 0, by = 10),
-                                                labels=abs(seq(-50,0,by = 10)),
-                                                expand = c(0,0),
-                                                name = "Millions of years (Ma)") +
-  geom_vline(xintercept = seq(-50,0, by = 5), size = 0.2, alpha = 0.7)
+# 2 Piper
+length(pepML$tip.label)
+z2 <- subset(z, ! HigherGeography %in% c("Africa", "Asia", "Outgroups", "S + C America"))
+sort(unique(paste0(z2$Genus, z2$Species)))
 
 
-                                
-datedPlot3 <- ggtree(datedPhy, size = 0.2) + scale_x_reverse()
+readDepthSummary <- read.csv(file.path(main.dir, "readDepthSummary.csv"))
+readDepthSummary_subset <- subset(readDepthSummary, sample_ID %in% pepML$tip.label)
+range(readDepthSummary_subset$meanCoverage)
 
-# cowplot::plot_grid(testPhylo_support, datedPlot3, ncol=2)
-
-ggsave(datedPlot2, filename = file.path(phylo.dir, "datedPlot.pdf"), height = 12, width = 6)
+## 

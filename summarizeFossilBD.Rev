@@ -1,0 +1,21 @@
+## SUMMARIZE OUTPUT
+# Summarize fossilized birth-death output
+
+treetrace = readTreeTrace(["output/ucln_run_1.trees",
+                           "output/ucln_run_2.trees",
+                           "output/ucln_run_3.trees",
+                           "output/ucln_run_4.trees",
+                           "output/ucln_run_5.trees",
+                           "output/ucln_run_6.trees",
+                           "output/ucln_run_7.trees",
+                           "output/ucln_run_8.trees",
+                           "output/ucln_run_9.trees",
+                           "output/ucln_run_10.trees"], burnin = 0.25, treetype = "clock")
+
+# Maximum a posterior tree
+mapTree(treetrace, "output/ucln_map.tree")
+
+# Maximum clade credibility tree
+mccTree(treetrace, "output/ucln_mcc.tree")
+
+q()
