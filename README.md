@@ -2,13 +2,13 @@
 
 Molecular phylogenetic study of Peperomia (Piperaceae) in the Pacific
 
-![Peperomia](https://github.com/junyinglim/peperomiaPhylo/peperomiaImage.jpg)
+![Peperomia](https://github.com/junyinglim/peperomiaPhylo/blob/master/peperomiaImage.jpg)
 
 **Citation:** Lim, J.Y., Marshall, C.R., Zimmer, E.A. & Wagner, W.L. (in prep) Parallel radiations of peppers (Peperomia, Piperaceae) on the Hawaiian Islands suggest role of ecological release in island biotic assembly.
 
 
 ## Summary of pipeline
-### Step 1: Reference mapping to Piper chloroplast genome (`referenceAssembly.sh`)
+**Step 1: Reference mapping to Piper chloroplast genome (`referenceAssembly.sh`)**
 * Adapter trimming using `Trimmomatic`
 * Index the reference genome using `bowtie2` (http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml#indexing-a-reference-genome)
 * Mapping to reference genome using `bowtie2`
@@ -20,19 +20,19 @@ Molecular phylogenetic study of Peperomia (Piperaceae) in the Pacific
 2. However, I'm not sure I want to use GetOrganelle to do the de novo assembly; tried several times but it does not seem to produce the assembly graphs
 -->
 
-### Step 2: Extract out chloroplast genes using reference annotations
+**Step 2: Extract out chloroplast genes using reference annotations**
 * Multiple sequence alignment using MAFFT, and then BLAT reference sequences of protein-coding genes back to the alignment (`extractAnnotation.py`)
 * Using BLAT annotations, individual locus alignments are parsed out into separate alignment files (`extractLoci.R`)
 * Concatenate and generate a partition file (`concatenateLoci.py`)
 
-### Step 3: Phylogeny estimation using `IQ-TREE`
+**Step 3: Phylogeny estimation using `IQ-TREE`**
 * Step was done in CIPRES (https://www.phylo.org/portal2/)
   
-### Step 4: Divergence time estimation of Piperales (`fossilBD.rev`)
+**Step 4: Divergence time estimation of Piperales (`fossilBD.rev`)**
 * Bayesian relaxed clock (uncorrelated log-normal) and fossilized birth-death models
 * Includes 11 fossil tip constraints
 
-### Step 5: Divergence time estimation using non-parametric rate smoothing (`runTreePL.py`)
+**Step 5: Divergence time estimation using non-parametric rate smoothing (`runTreePL.py`)**
 * Non-parametric rate smoothing implemented in `TreePL`
 * Randomly samples Peperomia-Piper divergence times from the posterior distribution of fossilized birth death trees (see Step 4)
 * Used as a fixed root constraint in `TreePL`
