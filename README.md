@@ -2,7 +2,7 @@
 
 Molecular phylogenetic study of Peperomia (Piperaceae) in the Pacific
 
-<img src="https://github.com/junyinglim/peperomiaPhylo/blob/master/peperomiaImage.jpg" width="100">
+<img src="https://github.com/junyinglim/peperomiaPhylo/blob/master/peperomiaImage.jpg" width="300">
 
 **Citation:** Lim, J.Y., Marshall, C.R., Zimmer, E.A. & Wagner, W.L. (in prep) Parallel radiations of peppers (Peperomia, Piperaceae) on the Hawaiian Islands suggest role of ecological release in island biotic assembly.
 
