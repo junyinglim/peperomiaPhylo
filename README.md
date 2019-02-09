@@ -32,8 +32,10 @@ Molecular phylogenetic study of Peperomia (Piperaceae) in the Pacific
 * Bayesian relaxed clock (uncorrelated log-normal) and fossilized birth-death models
 * Includes 11 fossil tip constraints
 
-**Step 5: Divergence time estimation using non-parametric rate smoothing (`runTreePL.py`)**
-* Non-parametric rate smoothing implemented in `TreePL`
+
+**Step 5: Divergence time estimation using non-parametric rate smoothing**
+* Summarize the maximum a posteriori and maximum clade credibility tree from posterior distribution of trees (`summarizeFossilBD.Rev`)
+* Non-parametric rate smoothing implemented in `TreePL` (`runTreePL.py`)
 * Randomly samples Peperomia-Piper divergence times from the posterior distribution of fossilized birth death trees (see Step 4)
 * Used as a fixed root constraint in `TreePL`
 
