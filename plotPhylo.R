@@ -176,6 +176,7 @@ berkcol3 = c("#003262", "#3B7EA1", "#9BBEA9", "#00B0DA", "#00A598", brewer.pal(9
 #plot(1:15, col =berkcol3, pch = 16, cex=3)
 
 # For this method to work, the FIRST column must be matched with the tip labels
+accessionData$label <- accessionData$SampleID
 accessionData$binom <- paste(accessionData$Genus, accessionData$Species)
 accessionData$binom <- paste0("`", accessionData$binom, "`")
 rownames(accessionData) <- accessionData$tiplabel
@@ -183,14 +184,14 @@ accessionData_subset <- subset(accessionData, tiplabel %in% pepML$tip.label)
 accessionData_subset <- accessionData_subset[match(accessionData_subset$tiplabel, pepML$tip.label),]
 
 accessionData_subset$HigherGeography <- factor(accessionData_subset$HigherGeography,
-                                               levels = c("Africa",
-                                                          "Asia",
-                                                          "S + C America",
-                                                          "Hawaii",
-                                                          "Micronesia",
-                                                          "New Caledonia + Fiji + Samoa",
-                                                          "Australia + New Zealand",
+                                               levels = c("Hawaii",
                                                           "S Pacific",
+                                                          "New Caledonia + Fiji + Samoa",
+                                                          "Asia",
+                                                          "Australia + New Zealand",
+                                                          "Micronesia",
+                                                          "Africa",
+                                                          "S + C America",
                                                           "Outgroups"))
 accessionData_subset2 <- dcast(data = accessionData_subset, formula = tiplabel~HigherGeography, value.var = "HigherGeography")
 rownames(accessionData_subset2) <- accessionData_subset2$tiplabel
@@ -198,8 +199,8 @@ target_col <- levels(accessionData_subset$HigherGeography)
 
 # Plot phylogeny with tip labels
 phyloSupport <- ggtree(pepML, size = 0.2, ladderize = TRUE) %<+%
-  accessionData_subset[c("tiplabel","binom","HigherGeography")] +
-  geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>80 & as.numeric(label)<=90), color = "black", fill = "grey80", size= 1.5, shape = 21) + # adds a dot for nodes > 80 bootstrap
+  accessionData_subset[c("label","tiplabel","binom","HigherGeography")] +
+  geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>80 & as.numeric(label)<=90), color = "black", fill = "grey80", size= 1.5, shape = 21) + 
   geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>90 & as.numeric(label)<=100), color = "black", fill = "white", size= 1.5, shape = 21) +
   geom_tiplab(aes(label=paste0("italic(",binom,")")), size = 1.5, parse = TRUE) +
   #xlim(0, 0.07) +
@@ -209,7 +210,7 @@ phyloSupport <- ggtree(pepML, size = 0.2, ladderize = TRUE) %<+%
   theme(panel.background = element_rect(fill = "transparent"))
 ggsave(phyloSupport, width = 8, height = 12, filename = file.path(fig.dir, "phylo_support.pdf"))
 
-phyloBiogeog <- gheatmap(p = phyloSupport,  data = accessionData_subset2[target_col], width = 0.08, color = "transparent", offset= 0.01, colnames = F) +
+phyloBiogeog <- gheatmap(p = phyloSupport,  data = accessionData_subset2[target_col], width = 0.08, color = "transparent", offset= 0.007, colnames = F) +
   scale_fill_manual(breaks = target_col,
                     values = c(berkcol3[c(1,3,4,6,7,8,15,9,11)]),
                     labels = target_col) +
@@ -222,6 +223,55 @@ phyloBiogeog_legend <- cowplot::get_legend(phyloBiogeog + theme(legend.spacing.x
 ggsave(phyloBiogeog_legend, filename = file.path(fig.dir, "biogeogLegend.pdf"), device = cairo_pdf, width = 3, height = 4, bg = "transparent")
 #phyloNode <- ggtree(pepRAXML_rooted, size = 0.2, ladderize = TRUE) + 
 #  geom_text2(aes(subset=!isTip, label=node), hjust=-.3, size = 1)
+
+## QUARTET SAMPLING RESULTS =======
+qs_qc <- read.newick("~/Dropbox/Peperomia/Pacific/genomeskimming_data/pepPhyloRuns/2018-09-04/qs/RESULT.labeled.tre.qc.rooted.nex")
+qs_qi <- read.newick("~/Dropbox/Peperomia/Pacific/genomeskimming_data/pepPhyloRuns/2018-09-04/qs/RESULT.labeled.tre.qi.rooted.nex")
+
+# Correct one of the mislabels
+cleanUpTreeTips <- function(tree){
+  #tree <- phangorn::midpoint(tree, node.labels= "label")
+  tree$tip.label[tree$tip.label == "PEZ-294"] <- "filler" #"PEZ-298_Peperomia_adamsonii_Marquesas"
+  tree$tip.label[tree$tip.label == "PEZ-298"] <- "PEZ-294"
+  tree$tip.label[tree$tip.label == "filler"] <- "PEZ-298" #"PEZ-298_Peperomia_adamsonii_Marquesas"
+  tree <- drop.tip(tree, tip = "PEZ-211") # Peperomia membranaceae
+  return(tree)
+}
+
+# Focus on qi and qc
+qs_qi_clean <- cleanUpTreeTips(qs_qi)
+qs_qc_clean <- cleanUpTreeTips(qs_qc)
+qs_qi_clean$node.label <- gsub(qs_qi_clean$node.label, pattern = "qi=", replacement = "")
+qs_qc_clean$node.label <- gsub(qs_qc_clean$node.label, pattern = "qc=", replacement = "")
+
+library(viridis)
+qs_qi_plot <- ggtree(qs_qi_clean)  %<+%
+  accessionData[c("tiplabel","binom","HigherGeography")] +
+  geom_tiplab(aes(label=paste0("italic(",binom,")")), size = 1.5, parse = TRUE) +
+  geom_nodepoint(aes(colour = as.numeric(label))) +
+  xlim(0, 0.06) +
+  scale_colour_viridis(name = "Quartet Informativeness") +
+  theme(legend.position = "bottom")
+
+qs_qc_plot <- ggtree(qs_qc_clean)  %<+%
+  accessionData[c("label","tiplabel","binom","HigherGeography")] +
+  geom_tiplab(aes(label=paste0("italic(",binom,")")), size = 1.5, parse = TRUE) +
+  geom_nodepoint(aes(colour = as.numeric(label))) +
+  xlim(0, 0.06) +
+  scale_colour_viridis(name = "Quartet Concordance") +
+  theme(legend.position = "bottom")
+
+ggsave(plot = qs_qi_plot, file.path(fig.dir, "pepML_qs_qi.pdf"), width = 8, height = 12)
+ggsave(plot = qs_qc_plot, file.path(fig.dir, "pepML_qs_qc.pdf"), width = 8, height = 12)
+
+qs_plots <- plot_grid(qs_qi_plot, qs_qc_plot, labels = c("(a)", "(b)"), nrow = 2, label_size = 20)
+
+ggsave(qs_plots, filename = file.path(fig.dir, "pepML_qs_comb.pdf"), width = 8, height = 12)
+
+# QC = Quartet concordance - how often quartet is preferred over other config (1 = concord., 0 = equivocal, <0 = disc. > conc.)
+# QD = Quartet differential - are discordant frequencies equal or skewed? (1 = equal, 0 = one discordant is completely dominant)
+# QI = Quartet informativeness - what prop. of replicates exceeded likelihood differential (1 - all infomrative, 0 = none informative)
+# QF = Quartet fidelity - when a taxon is sampled, how often does it produce a concordant topology (1 = all cncordant, 0.1 = 10% concordant, 0 = none concordant) [ used to identify misidentification / ingroup errors ]
 
 ## SUMMARY STATISTICS =======
 z <- subset(accessionData, tiplabel %in% pepML$tip.label) # 118 accessions (incl 3 outgroups)
