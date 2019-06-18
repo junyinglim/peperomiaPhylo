@@ -5,11 +5,12 @@ library(phytools); library(tibble)
 library(ggtree); library(tidytree)
 library(ggplot2); library(gridExtra); library(grid)
 library(stringr); library(deeptime)
+library(RColorBrewer); library(reshape2)
 
 ## Directories ============
-phylo.dir <- "~/Dropbox/Projects/2015/Peperomia/data/pepPhyloRuns/2018-09-04/iqtree"
-data.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/data"
-main.dir <- "~/Dropbox/Projects/2015/Peperomia/peperomiaPhylo/"
+phylo.dir <- "~/Dropbox/Peperomia/Pacific/genomeskimming_data/pepPhyloRuns/2018-09-04/iqtree"
+main.dir <- "~/Dropbox/Peperomia/Pacific/peperomiaPhylo/"
+data.dir <- file.path(main.dir, "data")
 output.dir <- file.path(main.dir, "output")
 fig.dir <- file.path(main.dir, "figures")
 
@@ -169,44 +170,60 @@ col8 <- rgb(241, 216, 110, maxColorValue = 255)
 colBiogeog <- c(col4, col7, col2, col1, col5, col8, col6, col3, "grey60")
 #plot(1:8, col = c(col1, col2, col3, col4, col5, col6, col7, col8), cex = 3, pch = 16)
 
-# Create legend -----------
-legendDF <- data.frame(cat=sort(unique(accessionData$HigherGeography)), x = 1:9, y = 1.9)
-testLegend <- ggplot(data = legendDF) + geom_point(aes(y = y, x = x, color = cat), size = 3) + scale_colour_manual(values = colBiogeog) + theme(legend.key = element_blank(), legend.title = element_blank())
-
-g_legend <- function(a.gplot){ 
-  tmp <- ggplot_gtable(ggplot_build(a.gplot)) 
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box") 
-  legend <- tmp$grobs[[leg]] 
-  return(legend)} 
-
-plotLegend <- g_legend(testLegend)
-ggsave(plotLegend, filename = file.path(output.dir, "biogeogLegend.pdf"), device = cairo_pdf, width = 2, height = 4)
-
 # Plot phylogeny -----------
+# Define colours for biogeographic regions
+berkcol3 = c("#003262", "#3B7EA1", "#9BBEA9", "#00B0DA", "#00A598", brewer.pal(9, "BuGn")[8], "#CFDD45","#859438", "#FDB515", brewer.pal(9, "YlOrRd")[5], "#ED4E33", "#C4820E", "#D9661F","#6C3302","grey80")
+#plot(1:15, col =berkcol3, pch = 16, cex=3)
+
 # For this method to work, the FIRST column must be matched with the tip labels
 accessionData$binom <- paste(accessionData$Genus, accessionData$Species)
 accessionData$binom <- paste0("`", accessionData$binom, "`")
-accessionData$GeogNew <- paste0("`   ", accessionData$Geography, "`")
-phyloSupport <- ggtree(pepML, size = 0.2, ladderize = TRUE) %<+%
-  accessionData[c("tiplabel","binom","Genus", "Species", "HigherGeography", "GeogNew")] +
-  #geom_nodelab(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)<80), size = 1.5) +
-  geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>80), color = "grey30", alpha = 0.5, size= 1.5) + # adds a dot for nodes > 80 bootstrap
-  #geom_hilight(node = 214, fill = "grey90", extendto = 0.035) +
-  #geom_hilight(node = 132, fill = "grey90", extendto = 0.035) +
-  geom_tiplab(aes(label=paste0("italic(",binom,")~", GeogNew), color = HigherGeography), size = 1.5, parse = TRUE) +
-  xlim(0, 0.07) +
-  #geom_cladehi(node = 214, label = "Hawaiian endemics A") +
-  #geom_cladehi(node = 132, label = "Hawaiian endemics B") +
-  scale_color_manual(values = colBiogeog) +
-  geom_treescale(x = 0, y = 0, offset = -2) +
-  theme(panel.background = element_rect(fill = "transparent"))
+rownames(accessionData) <- accessionData$tiplabel
+accessionData_subset <- subset(accessionData, tiplabel %in% pepML$tip.label)
+accessionData_subset <- accessionData_subset[match(accessionData_subset$tiplabel, pepML$tip.label),]
 
+accessionData_subset$HigherGeography <- factor(accessionData_subset$HigherGeography,
+                                               levels = c("Africa",
+                                                          "Asia",
+                                                          "S + C America",
+                                                          "Hawaii",
+                                                          "Micronesia",
+                                                          "New Caledonia + Fiji + Samoa",
+                                                          "Australia + New Zealand",
+                                                          "S Pacific",
+                                                          "Outgroups"))
+accessionData_subset2 <- dcast(data = accessionData_subset, formula = tiplabel~HigherGeography, value.var = "HigherGeography")
+rownames(accessionData_subset2) <- accessionData_subset2$tiplabel
+target_col <- levels(accessionData_subset$HigherGeography)
+
+# Plot phylogeny with tip labels
+phyloSupport <- ggtree(pepML, size = 0.2, ladderize = TRUE) %<+%
+  accessionData_subset[c("tiplabel","binom","HigherGeography")] +
+  geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>80 & as.numeric(label)<=90), color = "black", fill = "grey80", size= 1.5, shape = 21) + # adds a dot for nodes > 80 bootstrap
+  geom_nodepoint(aes(subset=!is.na(as.numeric(label)) & as.numeric(label)>90 & as.numeric(label)<=100), color = "black", fill = "white", size= 1.5, shape = 21) +
+  geom_tiplab(aes(label=paste0("italic(",binom,")")), size = 1.5, parse = TRUE) +
+  #xlim(0, 0.07) +
+  #scale_color_manual(values = colBiogeog) +
+  ylim(-2,119) +
+  geom_treescale(x = 0, y = 0, offset = -1.8) +
+  theme(panel.background = element_rect(fill = "transparent"))
+ggsave(phyloSupport, width = 8, height = 12, filename = file.path(fig.dir, "phylo_support.pdf"))
+
+phyloBiogeog <- gheatmap(p = phyloSupport,  data = accessionData_subset2[target_col], width = 0.08, color = "transparent", offset= 0.01, colnames = F) +
+  scale_fill_manual(breaks = target_col,
+                    values = c(berkcol3[c(1,3,4,6,7,8,15,9,11)]),
+                    labels = target_col) +
+  theme(legend.position = "right", legend.title = element_blank())
+ggsave(phyloBiogeog + theme(legend.position = "none"),
+       width = 9, height = 12, filename = file.path(fig.dir, "phylo_biogeog.pdf"))
+
+
+phyloBiogeog_legend <- cowplot::get_legend(phyloBiogeog + theme(legend.spacing.x = unit(0.3,"cm"), legend.background = element_blank()))
+ggsave(phyloBiogeog_legend, filename = file.path(fig.dir, "biogeogLegend.pdf"), device = cairo_pdf, width = 3, height = 4, bg = "transparent")
 #phyloNode <- ggtree(pepRAXML_rooted, size = 0.2, ladderize = TRUE) + 
 #  geom_text2(aes(subset=!isTip, label=node), hjust=-.3, size = 1)
 
-ggsave(phyloSupport, width = 8, height = 12, filename = file.path(fig.dir, "phylo_support.pdf"))
-
-## SUMMARY STATISTICS
+## SUMMARY STATISTICS =======
 z <- subset(accessionData, tiplabel %in% pepML$tip.label) # 118 accessions (incl 3 outgroups)
 table(subset(accessionData, tiplabel %in% pepML$tip.label)$HigherGeography) # 97 accessions
 

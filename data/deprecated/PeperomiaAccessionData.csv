@@ -1,0 +1,137 @@
+SampleID,Genus,Species,Authority,Geography,Country,Locality,Year,Coll,VoucherNo,HerbID
+JYL-03,Peperomia,obovatilimba,C. DC.,Hawaii,US,Hawaii,2015,J.Y. Lim,3,UC
+JYL-31,Peperomia,membranacea,Hook. & Arn.,Hawaii,US,Maui,2016,J.Y. Lim,31,UC
+JYL-33,Peperomia,cookiana,C. DC.,Hawaii,US,Maui,2016,J.Y. Lim,33,UC
+JYL-36,Peperomia,tetraphylla,(G.Forst.) Hook. & Arn.,Hawaii,US,Maui,2016,J.Y. Lim,36,UC
+JYL-37,Peperomia,mauiensis,Wawra,Hawaii,US,Maui,2016,J.Y. Lim,37,UC
+JYL-38,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Hawaii,US,Maui,2016,J.Y. Lim,38,UC
+JYL-39,Peperomia,mauiensis,Wawra,Hawaii,US,Maui,2016,J.Y. Lim,39,UC
+JYL-40,Peperomia,remyi,C. DC.,Hawaii,US,Maui,2016,J.Y. Lim,40,UC
+JYL-41,Peperomia,latifolia,Miq.,Hawaii,US,Maui,2016,J.Y. Lim,41,UC
+JYL-42,Peperomia,alternifolia,Yunck.,Hawaii,US,Maui,2016,J.Y. Lim,42,UC
+JYL-44,Peperomia,latifolia,Miq.,Hawaii,US,Maui,2016,J.Y. Lim,44,UC
+JYL-45,Peperomia,cookiana,C. DC.,Hawaii,US,Maui,2016,J.Y. Lim,45,UC
+JYL-49,Peperomia,cookiana,C. DC.,Hawaii,US,Maui,2016,J.Y. Lim,49,UC
+JYL-50,Peperomia,macraeana,C. DC.,Hawaii,US,Maui,2016,J.Y. Lim,50,UC
+JYL-51,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Hawaii,US,Kauai,2017,J.Y. Lim,51,UC
+JYL-53,Peperomia,oahuensis,C. DC.,Hawaii,US,Kauai,2017,J.Y. Lim,53,UC
+JYL-55,Peperomia,sandwicensis,Miq.,Hawaii,US,Kauai,2017,J.Y. Lim,55,UC
+JYL-56,Peperomia,hesperomannii,Wawra,Hawaii,US,Kauai,2017,J.Y. Lim,56,UC
+JYL-59,Peperomia,macraeana,C. DC.,Hawaii,US,Oahu,2017,J.Y. Lim,59,UC
+JYL-61,Peperomia,ellipticibacca,C. DC.,Hawaii,US,Oahu,2017,J.Y. Lim,61,"UC, BISH"
+JYL-67,Peperomia,membranacea,Hook. & Arn.,Hawaii,US,Oahu,2017,J.Y. Lim,67,"UC, BISH"
+JYL-68,Peperomia,macraeana,C. DC.,Hawaii,US,Oahu,2017,J.Y. Lim,68,"UC, BISH"
+JYL-70,Peperomia,macraeana,C. DC.,Hawaii,US,Oahu,2017,J.Y. Lim,70,"UC, BISH"
+JYL-71,Peperomia,cookiana,C. DC.,Hawaii,US,Oahu,2017,J.Y. Lim,71,"UC, BISH"
+JYL-72,Peperomia,membranacea,Hook. & Arn.,Hawaii,US,Oahu,2017,J.Y. Lim,72,NO VOUCHER
+JYL-74,Peperomia,tetraphylla,(G.Forst.) Hook. & Arn.,Hawaii,US,Oahu,2017,J.Y. Lim,74,NO VOUCHER
+PEZ-096,Peperomia,glassmanii,Yunck.,Micronesia,,Pohnpei,2009,Wood,13516,US
+PEZ-098,Peperomia,hypoleuca,Miq.,Hawaii,,Hawaii,2011,K. Wood,12425,PTBG
+PEZ-102,Peperomia,palauensis,C. DC.,Micronesia,,"Palau, Mecherchar",2011,S. Perlman,20851,PTBG
+PEZ-105,Peperomia,societatis,J.W.Moore,Societies,,Moorea,2011,Butaud,2973,US
+PEZ-106,Peperomia,grantii,Yunck.,Societies,,Tahiti Taravao,2011,Butaud,2975,US
+PEZ-107,Peperomia,societatis,J.W.Moore,Societies,,Tahiti,2011,Butaud,2951,US
+PEZ-108,Peperomia,hombronii,C. DC.,Societies,,Tahiti,2011,Butaud,2977,US
+PEZ-136,Peperomia,hypoleuca,Miq.,Hawaii,US,Hawaii,2007,Wood,12425,PTBG
+PEZ-148,Peperomia,hypoleuca,Miq.,Hawaii,US,Hawaii,1988,Wagner,5975,US
+PEZ-162,Peperomia,samoensis,Warb.,Samoa,,Savaii,2016,Lorence,10614,PTBG
+PEZ-163,Peperomia,reineckei,C. DC.,Samoa,,Savaii,2016,Lorence,10596,PTBG
+PEZ-164,Macropiper,puberulum,Benth.,Samoa,,Savaii,2016,Lorence,10610,PTBG
+PEZ-165,Peperomia,reineckei,C. DC.,Samoa,,Savaii,2016,Lorence,10618,PTBG
+PEZ-166,Peperomia,savaiiensis,Whistler,Samoa,,Savaii,2016,Lorence,10619,PTBG
+PEZ-168,Peperomia,samoensis,Warb.,Samoa,,Upolu,2016,Wood,16922,PTBG
+PEZ-169,Peperomia,reineckei,C. DC.,Samoa,,Savaii,2016,Wood,16951,PTBG
+PEZ-170,Peperomia,reineckei,C. DC.,Samoa,,Upolu,2016,Wood,16900,PTBG
+PEZ-172,Peperomia,congesta,Kunth,S Amer,,Peru,,"Hutchison, P.C. & J.K. Wright",6593,UC
+PEZ-174,Peperomia,puteolata,Trel.,S Amer,,Peru,,Bennett,0462A,UC
+PEZ-177,Peperomia,urvilleana,A.Rich.,New Zealand,,North Island,1991,Sauceda,s.n.,UC
+PEZ-179,Peperomia,graveolens,Rauh & Barthlott,S Amer,,Peru,,,,n.a
+PEZ-180,Peperomia,sp.,,C Amer,,Mexico,,Bartholomew,926,n.a
+PEZ-183,Peperomia,hoffmannii,C. DC.,C Amer,,Costa Rica,,,,n.a
+PEZ-184,Peperomia,globulanthera,C. DC.,Hawaii,,Maui,2016,Oppenheimer,H101610,US
+PEZ-185,Peperomia,kipahuluensis,H.St.John & Lamoureux,Hawaii,,Maui,2016,Oppenheimer,H101606,US
+PEZ-186,Peperomia,obovatilimba,C. DC.,Hawaii,,Maui,2016,Oppenheimer,H101604,US
+PEZ-187,Peperomia,obovatilimba,C. DC.,Hawaii,,Maui,2016,Oppenheimer,H101609,US
+PEZ-189,Peperomia,hirtipetiola,C. DC.,Hawaii,,Maui,2009,Wood,13486,PTBG
+PEZ-190,Peperomia,cookiana,C. DC.,Hawaii,,Kauai,2014,Wood,15989,PTBG
+PEZ-191,Peperomia,cookiana,C. DC.,Hawaii,,Kauai,2013,Wood,15597,PTBG
+PEZ-192,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Hawaii,,Kauai,2012,Wood,14893,PTBG
+PEZ-193,Peperomia,membranacea,Hook. & Arn.,Hawaii,,Kauai,2013,Wood,15391,PTBG
+PEZ-194,Peperomia,kipahuluensis,H.St.John & Lamoureux,Hawaii,,Maui,2013,Wood,15607,PTBG
+PEZ-196,Peperomia,oahuensis,C. DC.,Hawaii,,Kauai,2013,Wood,15757,PTBG
+PEZ-197,Peperomia,kokeana,Yunck.,Hawaii,,Kauai,2012,Wood,15158,PTBG
+PEZ-198,Peperomia,eekana,C. DC.,Hawaii,,Maui,2012,Wood,15059,PTBG
+PEZ-200,Peperomia,glassmanii,Yunck.,Micronesia,,Pohnpei,2009,Wood,13516,PTBG
+PEZ-201,Peperomia,hypoleuca,Miq.,Hawaii,,Hawaii,2007,Wood,12425,PTBG
+PEZ-202,Peperomia,expallescens,C. DC.,Hawaii,,Maui,2005,Wood,11493,PTBG
+PEZ-203,Peperomia,rockii,C. DC.,Hawaii,,Molokai,2004,Wood,10607,PTBG
+PEZ-204,Piper,ponapense,C. DC.,Micronesia,,Pohnpei,2009,Wood,13509,PTBG
+PEZ-205,Peperomia,hirtipetiola,C. DC.,Hawaii,,Kauai,2014,Wood,15929,PTBG
+PEZ-206,Peperomia,remyi,C. DC.,Hawaii,,Kauai,2015,Wood,16535,PTBG
+PEZ-208,Peperomia,sandwicensis,Miq.,Hawaii,,Kauai,2017,Wood,17428,PTBG
+PEZ-209,Peperomia,ponapensis,C. DC.,Micronesia,,Kosrae,2011,Wood,14780,PTBG
+PEZ-210,Peperomia,glassmanii,Yunck.,Micronesia,,Pohnpei,2009,Perlman,21454,PTBG
+PEZ-211,Peperomia,membranacea,Hook. & Arn.,Hawaii,,Kauai,2017,Wood,17457,PTBG
+PEZ-212,Peperomia,pallida,A.Dietr.,Marquesas,,Ua Huka,2003,Wood,10499,PTBG
+PEZ-213,Peperomia,tetraphylla,(G.Forst.) Hook. & Arn.,Hawaii,,Kauai,2017,Wood,17434,PTBG
+PEZ-214,Peperomia,latifolia,Miq.,Hawaii,,Kauai,2017,Wood,17442,PTBG
+PEZ-215,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Marquesas,,Ua Poa,2003,Lorence,9111,PTBG
+PEZ-217,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Marquesas,,Hiva Oa,2003,Perlman,18344,PTBG
+PEZ-218,Peperomia,pallida,A.Dietr.,Marquesas,,Ua Poa,2003,Wood,10457,PTBG
+PEZ-219,Peperomia,latifolia,Miq.,Hawaii,,Kauai,2017,Wood,17396,PTBG
+PEZ-221,Peperomia,hirtipetiola,C. DC.,Hawaii,,Kauai,2016,Wood,16702,PTBG
+PEZ-222,Peperomia,hesperomannii,Wawra,Hawaii,,Kauai,2017,Wood,17406,PTBG
+PEZ-223,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Hawaii,,Oahu,2017,Togikawa,s.n.,
+PEZ-224,Peperomia,ligustrina,Hillebr.,Hawaii,,Maui,2017,Oppenheimer,H51703,US
+PEZ-226,Peperomia,subpetiolata,Yunck.,Hawaii,,Maui,2016,Oppenheimer,H41611,US
+PEZ-228,Peperomia,subpetiolata,Yunck.,Hawaii,,Maui,2016,Oppenheimer,H41613,US
+PEZ-231,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Australs,,Rurutu,,,,
+PEZ-232,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Australs,,Rurutu,,,,
+PEZ-233,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Australs,,Rurutu,,Alive!,,
+PEZ-234,Peperomia,polystachya,(Aiton) Hook.,C Amer,Jamaica,Jamaica,,,,
+PEZ-235,Peperomia,blanda,(Jacq.) Kunth,,,,2018,Frenzke,14,DR
+PEZ-236,Peperomia,blanda,(Jacq.) Kunth,Pitcairns,,,,,,
+PEZ-237,Peperomia,blanda,(Jacq.) Kunth,,,,,,,
+PEZ-238,Peperomia,blanda,(Jacq.) Kunth,Middle East,Yemen,Socotra,,,,
+PEZ-239,Peperomia,skottsbergii,C. DC. ex Skottsb.,Juan Fernandez,,Juan Fernandez,,,,Jardín Botánico Nacional (JBN)
+PEZ-241,Peperomia,polystachya,(Aiton) Hook.,C Amer,Jamaica,,,Samain,2013-094,GENT
+PEZ-242,Peperomia,margaritifera,Bertero ex Hook.,Juan Fernandez,,Juan Fernandez,,,,Jardín Botánico Nacional (JBN)
+PEZ-243,Peperomia,berteroana,Miq.,Juan Fernandez,,Juan Fernandez,,,,Jardín Botánico Nacional (JBN)
+PEZ-244,Peperomia,pitcairnensis,C. DC.,Pitcairns,,,,,,Pe859
+PEZ-245,Peperomia,societatis,J.W.Moore,Societies,,Tahiti,,,,Pe921 - HBUG 2002 2227
+PEZ-246,Peperomia,sp.,,New Caledonia,,New Caledonia,2002,Lowry II,5617,MOBOT
+PEZ-247,Piper,sp.,,New Caledonia,,New Caledonia,2003,McPherson,19040,MOBOT
+PEZ-248,Peperomia,blanda ,(Jacq.) Kunth,Africa,,Madagascar,2009,Bernard,1497,MOBOT
+PEZ-249,Peperomia,blanda ,(Jacq.) Kunth,Africa,,Madagascar,2015,Rakotonirina,1133,MOBOT
+PEZ-250,Peperomia,caledonica,C. DC.,New Caledonia,,New Caledonia,2001,McPherson,18208,MOBOT
+PEZ-251,Peperomia,coroicoensis,Yunck.,S Amer,,Bolivia,2005,Araujo,2129,MOBOT
+PEZ-253,Peperomia,fernandopoiana,C. DC.,Africa,,Madagascar,2012,Razoazanany,97,MOBOT
+PEZ-254,Peperomia,glabella,(Sw.) A. Dietr.,C Amer,,Nicaragua,2014,Stevens,34572,MOBOT
+PEZ-265,Peperomia,blanda,(Jacq.) Kunth,Asia,,"China, Guangxi",,Li J.-M.,6262,PE
+PEZ-267,Peperomia,tetraphylla,(G.Forst.) Hook. & Arn.,Africa,,South Africa,,J.S.Burrows,8924,MOBOT
+PEZ-269,Peperomia,sp.,,New Caledonia,,New Caledonia,2011,J.Munzinger,6537,MOBOT
+PEZ-272,Peperomia,lasiostigma,,Fiji,,Taveuni,2017,Pene,3,USP
+PEZ-273,Peperomia,lasiostigma,,Fiji,,Taveuni,2017,Pene,20,USP
+PEZ-275,Peperomia,lasiostigma,,Fiji,,Taveuni,2017,Pene,47,USP
+PEZ-276,Peperomia,attenuata,,Fiji,,Taveuni,2017,Pene,55,USP
+PEZ-278,Peperomia,attenuata,,Fiji,,Taveuni,2017,Pene,61,USP
+PEZ-280,Peperomia,lasiostigma,,Fiji,,Taveuni,2017,Pene,81,USP
+PEZ-281,Peperomia,lasiostigma,,Fiji,,Taveuni,2017,Pene,82,USP
+PEZ-282,Peperomia,attenuata,,Fiji,,Taveuni,2017,Pene,85,USP
+PEZ-283,Peperomia,falcata,,Fiji,,Taveuni,2017,Pene,87,USP
+PEZ-284,Peperomia,tetraphylla,(G.Forst.) Hook. & Arn.,Societies,,Tahiti,2017,JYM,3310,PAP
+PEZ-285,Peperomia,grantii,Yunck.,Societies,,Tahiti,2017,JYM,3311,PAP
+PEZ-287,Peperomia,cf. oliveri,J. Florence & W. L. Wagner,Marquesas,,Nuku Hiva,2017,JYM,3313,PAP
+PEZ-288,Peperomia,cf. tooviiana,J. Florence,Marquesas,,Nuku Hiva,2017,JYM,3314,PAP
+PEZ-289,Peperomia,cf. oliveri,J. Florence & W. L. Wagner,Marquesas,,Nuku Hiva,2017,JYM,3315,PAP
+PEZ-290,Peperomia,cf. blanda var floribunda,(Miq.) H. Hüber,Marquesas,,Nuku Hiva,2017,JYM,3316,PAP
+PEZ-291,Peperomia,cf. pallida,A.Dietr.,Societies,,Tahiti,2017,JYM,3317,PAP
+PEZ-292,Peperomia,blanda var. floribunda,(Miq.) H.Hüber,Australia,,Australia,,"Jensen, R.",1985,"BRI, CNS"
+PEZ-293,Peperomia,hunteriana,P.I.Forst.,Australia,,Australia,,"Costion, C",2263,CNS
+PEZ-294,Peperomia,tetraphylla,(G.Forst.) Hook. & Arn.,Australia,,Australia,,"Jensen, R.",2020,CNS
+PEZ-295,Peperomia,enervis,F. Muell.,Australia,,Australia,,EMJ,5, 
+PEZ-296,Peperomia,enervis,F. Muell.,Australia,,Australia,,EMJ,6,
+PEZ-297,Peperomia,bellendenkerensis,Domin,Australia,,Australia,,EMJ,3,
+PEZ-298,Peperomia,adamsonia,(F.Br.) Yunck.,Marquesas,,Hiva Oa,2017,Wood,17686,PTBG
+PEZ-302,Peperomia,boninsimensis,Makino,Japan,,Japan,,,,
+PEZ-304,Peperomia,rubella,Hook.,C Amer,,,2017,Oppenheimer,H101701,US
