@@ -61,7 +61,7 @@ accessionData$HigherGeography <- factor(accessionData$HigherGeography,
                   "S Pacific",
                   "Outgroups"))
 
-## Summarize dated phylogenies ============
+## PLOT DATED PEPEROMIA PHYLOGENY ============
 treePLtrees <- list.files(output.dir, pattern = "treePL_[0-9]{1,3}.out$")
 treePLtrees_brtimes <- lapply(treePLtrees, FUN = function(x) { tree <- read.tree(file.path(output.dir, x)); return(branching.times(tree))})
 treePLtrees_brtimes2 <- do.call("cbind", treePLtrees_brtimes)
@@ -88,7 +88,7 @@ treePLtrees_mean3@phylo$node.label <- (Ntip(treePLtrees_mean3)+1):(Ntip(treePLtr
 test <- revts(ggtree(treePLtrees_mean3) +
   coord_cartesian(xlim = c(-80,0), ylim = c(-10, Ntip(treePLtrees_mean3)+2), expand = FALSE) +
   geom_range(range = 'height_range', branch.length = "height", col = "navyblue", alpha = 0.5, size = 2) +
-  geom_nodelab(size = 2) +
+  #geom_nodelab(size = 2) +
   scale_x_continuous(breaks=seq(-80,0, 10), labels=abs(seq(-80,0,10)),name = "Millions of years (Ma)") +
   geom_vline(aes(xintercept = -66), alpha = 0.5, col = "grey30", linetype = "dashed") +
   geom_vline(aes(xintercept = -56), alpha = 0.5, col = "grey30", linetype = "dashed") +
@@ -135,8 +135,39 @@ FBDlogDF_total <- do.call("rbind",FBDlogDF_burnin)
 quantile(FBDlogDF_total$crownAge_pippep, probs = c(0.025, 0.975))
 mean(FBDlogDF_total$crownAge_pippep)
 
-mccTree@data$age_0.95_HPD[mccTree@data$node == 122]
-branching.times(mccTree@phylo)["122"]
+x <- ggtree(mccTree_extant) + geom_nodelab(aes(label = index)) + geom_tiplab()
+#ggsave(x, filename = file.path(fig.dir, "piperales_tree.pdf"), width = 10, height = 8)
+
+# Peperomia crown
+mccTree_extant@data$age[mccTree_extant@data$index == 142]
+mccTree_extant@data$age_0.95_HPD[mccTree_extant@data$index == 142]
+
+# Piper crown
+mccTree_extant@data$age[mccTree_extant@data$index == 172]
+mccTree_extant@data$age_0.95_HPD[mccTree_extant@data$index == 172]
+
+# Piper-Peperomia split
+mccTree_extant@data$age[mccTree_extant@data$index == 174] 
+mccTree_extant@data$age_0.95_HPD[mccTree_extant@data$index == 174]
+
+# Piperaceae crown
+mccTree_extant@data$age[mccTree_extant@data$index == 177] 
+mccTree_extant@data$age_0.95_HPD[mccTree_extant@data$index == 177] 
+
+# Saururaceae crown
+mccTree_extant@data$age[mccTree_extant@data$index == 183] 
+mccTree_extant@data$age_0.95_HPD[mccTree_extant@data$index == 183] 
+
+# Piperaceae-Sauraraceae split
+mccTree_extant@data$age[mccTree_extant@data$index == 188]
+mccTree_extant@data$age_0.95_HPD[mccTree_extant@data$index == 188]
+
+# Aristolochia crown
+mccTree_extant@data$age[mccTree_extant@data$index == 221] 
+mccTree_extant@data$age_0.95_HPD[mccTree_extant@data$index == 221] 
+# {Aristolochia-(Piperacea,Saururaceae split) / Piperales crown
+mccTree_extant@data$age[mccTree_extant@data$index == 228]
+mccTree_extant@data$age_0.95_HPD[mccTree_extant@data$index == 228]
 
 ## Plot phylogeny ==============
 # Import phylogeny -----------
@@ -272,6 +303,30 @@ ggsave(qs_plots, filename = file.path(fig.dir, "pepML_qs_comb.pdf"), width = 8, 
 # QD = Quartet differential - are discordant frequencies equal or skewed? (1 = equal, 0 = one discordant is completely dominant)
 # QI = Quartet informativeness - what prop. of replicates exceeded likelihood differential (1 - all infomrative, 0 = none informative)
 # QF = Quartet fidelity - when a taxon is sampled, how often does it produce a concordant topology (1 = all cncordant, 0.1 = 10% concordant, 0 = none concordant) [ used to identify misidentification / ingroup errors ]
+
+## PHYLOGENETIC INFORMATIVENESS RESULTS =======
+library(png)
+library(magick)
+coding_phyinfo <- image_read("~/Desktop/coding_phyloinfo_res/codingPhyloInfo.png")
+noncoding_phyinfo <- image_read("~/Desktop/noncoding_phyloinfo_res/noncodingPhyloInfo.png")
+
+# Make background transparent
+coding_phyinfo_bg <- image_transparent(coding_phyinfo, color = "white")
+noncoding_phyinfo_bg <- image_transparent(noncoding_phyinfo, color = "white")
+
+coding_phyinfo_grob <- rasterGrob(coding_phyinfo_bg)
+noncoding_phyinfo_grob <- rasterGrob(noncoding_phyinfo_bg)
+
+datedPepPhylo <- revts(ggtree(treePLtrees_mean3, size = 0.1) +
+                coord_cartesian(xlim = c(-80,0), ylim = c(-10, Ntip(treePLtrees_mean3)+2), expand = FALSE) +
+                theme_tree2() )
+
+ggsave(datedPepPhylo + theme(plot.background = element_blank(),
+                             panel.background = element_blank()), filename = file.path(fig.dir, "datedPepPhylo_phyinfo.pdf"), height = 4, width = 6)
+
+phyinfo_comb_plot <- plot_grid(coding_phyinfo_grob, noncoding_phyinfo_grob, labels = c("(a)","(b)"), nrow = 2)
+
+ggsave(phyinfo_comb_plot, filename = file.path(fig.dir, "phyinfo_plot.pdf"), height = 6, width = 5)
 
 ## SUMMARY STATISTICS =======
 z <- subset(accessionData, tiplabel %in% pepML$tip.label) # 118 accessions (incl 3 outgroups)
